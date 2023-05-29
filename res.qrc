@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/new/prefix1">
+        <file>pictures/character.png</file>
+        <file>pictures/char.png</file>
+        <file>pictures/char-transformed.png</file>
+        <file>pictures/char1.png</file>
+    </qresource>
+</RCC>
