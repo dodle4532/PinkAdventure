@@ -14,13 +14,16 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    character.cpp
+        character.cpp \
+        barrier.cpp
 
 HEADERS  += mainwindow.h \
-    header.h \
-    character.h
+        header.h \
+        character.h \
+        barrier.h \
+        barrier.h
 
 FORMS    += mainwindow.ui
 
 RESOURCES += \
-    res.qrc
+    resources.qrc

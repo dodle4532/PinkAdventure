@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <string>
 #include <vector>
+#include <set>
 #include "mainwindow.h"
 
 class MainWindow;
@@ -19,16 +20,26 @@ enum class Move {
 class Character
 {
 public:
-    Character(std::string _url, QLabel* _label, MainWindow* _window);
+    Character(std::string _url, std::string url_2, QLabel* _label, MainWindow* _window, QPoint _startPos, QPoint _endPos);
     void move();
     void resetMove(Move move);
     void setMove(Move move);
+    void fall();
+    QPoint getStartPos() const;
+    QPoint getEndPos() const;
+    void resetJumpCount();
 
 private:
     std::string url;
+    std::string urlMirror;
     QLabel* label;
-    std::vector <Move> moves;
+    std::set <Move> moves;
     MainWindow* window;
+    QPoint startPos;
+    QPoint endPos;
+
+    int jumpCount;
+    bool isMirrored;
 };
 
 #endif // CHARACTER_H

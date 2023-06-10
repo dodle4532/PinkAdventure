@@ -1,1 +1,9 @@
-<RCC/>
+<RCC>
+    <qresource prefix="/new/prefix1">
+        <file>pictures/character.png</file>
+        <file>pictures/floor.png</file>
+        <file>pictures/floor.jpg</file>
+        <file>pictures/background.jpg</file>
+        <file>pictures/character(mirrored).png</file>
+    </qresource>
+</RCC>

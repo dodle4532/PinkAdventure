@@ -5,6 +5,8 @@
 #include <QLabel>
 #include <QKeyEvent>
 #include <iostream>
+#include <QTimer>
+#include <QPoint>
 #include "windows.h"
 
 #endif // HEADER_H
