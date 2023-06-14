@@ -14,8 +14,8 @@ MainWindow::MainWindow(QWidget *parent) :
                         " border-image: url(:/new/prefix1/pictures/background.jpg) 0 0 0 0 stretch stretch;"
                         "}");
 
-    character = new Character(":/new/prefix1/pictures/1character.png",
-                              ":/new/prefix1/pictures/1character(mirrored).png",  ui->character, this,
+    character = new Character(":/new/prefix1/pictures/character.png",
+                              ":/new/prefix1/pictures/character(mirrored).png",  ui->character, this,
                               QPoint(10,200), QPoint(100, 310));
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(fall()));
@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->floor->resize(10000, 1000);
     ui->floor->move(ui->floor->pos() + QPoint(0, 200));
     barriers.push_back(Barrier(ui->barrier_1, QPoint(300, 700), QPoint(550, 750), this));
+    barriers.push_back(Barrier(ui->barrier_2, QPoint(400, 650), QPoint(550, 700), this));
 //    setPicture(":/new/prefix1/pictures/floor.png", ui->floor);
 }
 
@@ -88,6 +89,10 @@ void MainWindow::setPicture(std::string path, QLabel* pic) {
 }
 
 bool MainWindow::isMovePossible() {
+    if (character->getStartPos().rx() < 1 || character->getEndPos().rx() > 1920 ||
+        character->getStartPos().ry() < 1  || character->getEndPos().ry() > 900) {
+        return false;
+    }
     for (auto & i : barriers) {
 //         if (!(i.isMovePosible(character->getStartPos(), character->getEndPos()))) {
 //             return false;
