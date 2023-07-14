@@ -1,11 +1,10 @@
 #include "barrier.h"
 
-Barrier::Barrier(QLabel* _label, QPoint _startPos, QPoint _endPos, MainWindow* _window)
+Barrier::Barrier(QLabel* _label, QPoint _startPos, QPoint _endPos)
 {
     label = _label;
     startPos = _startPos;
     endPos = _endPos;
-    window = _window;
     label->move(startPos);
     label->resize(abs(endPos.rx() - startPos.rx()), abs(endPos.ry() - startPos.ry()));
 }

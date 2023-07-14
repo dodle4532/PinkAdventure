@@ -15,13 +15,19 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
         character.cpp \
-        barrier.cpp
+        barrier.cpp \
+        gameobject.cpp \
+        level.cpp \
+    killingobject.cpp
 
 HEADERS  += mainwindow.h \
         header.h \
         character.h \
         barrier.h \
-        barrier.h
+        barrier.h \
+        gameobject.h \
+        level.h \
+    killingobject.h
 
 FORMS    += mainwindow.ui
 

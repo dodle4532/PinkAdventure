@@ -14,47 +14,53 @@ MainWindow::MainWindow(QWidget *parent) :
                         " border-image: url(:/new/prefix1/pictures/background.jpg) 0 0 0 0 stretch stretch;"
                         "}");
 
-    character = new Character(":/new/prefix1/pictures/character.png",
-                              ":/new/prefix1/pictures/character(mirrored).png",  ui->character, this,
-                              QPoint(10,200), QPoint(100, 310));
+    labels.resize(100);
+    for (auto & i : labels) {
+        i = new QLabel(this);
+    }
+    resetLevel("Test.txt");
+
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(fall()));
     connect(timer, SIGNAL(timeout()), this, SLOT(move()));
     timer->start(5);
     ui->floor->resize(10000, 1000);
     ui->floor->move(ui->floor->pos() + QPoint(0, 200));
-    barriers.push_back(Barrier(ui->barrier_1, QPoint(300, 700), QPoint(550, 750), this));
-    barriers.push_back(Barrier(ui->barrier_2, QPoint(400, 650), QPoint(550, 700), this));
+//    std::vector <Barrier> barriers;
+//    barriers.push_back(Barrier(ui->barrier_1, QPoint(300, 700), QPoint(550, 750)));
+//    barriers.push_back(Barrier(ui->barrier_2, QPoint(400, 650), QPoint(550, 700)));
+//    level = new Level(character, barriers, this);
+//    level->recordToFile("Test.txt");
 //    setPicture(":/new/prefix1/pictures/floor.png", ui->floor);
 }
 
 void MainWindow::fall() {
-    character->fall();
+    level->fall();
 }
 
 void MainWindow::move() {
-    character->move();
+    level->move();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {
     int key = event->key();
 //    std::cout << key;
-    std::cout << ui->character->pos().rx() << " " << ui->character->pos().ry() << " " << character->getStartPos().rx() << " " << character->getStartPos().ry() << std::endl;
+//    std::cout << ui->character->pos().rx() << " " << ui->character->pos().ry() << " " << character->getStartPos().rx() << " " << character->getStartPos().ry() << std::endl;
     if (key == Qt::Key_Escape) {
         std::cout << ui->character->pos().rx() << " " << ui->character->pos().ry() << std::endl;
         std::exit(0);
     }
     if(GetAsyncKeyState(Qt::Key_W)) {
-        character->setMove(Move::UP);
+        level->setMove(Move::UP);
     }
     if (GetAsyncKeyState(Qt::Key_A)) {
-        character->setMove(Move::LEFT);
+        level->setMove(Move::LEFT);
     }
     if (GetAsyncKeyState(Qt::Key_S)) {
-        character->setMove(Move::DOWN);
+        level->setMove(Move::DOWN);
     }
     if (GetAsyncKeyState(Qt::Key_D)) {
-        character->setMove(Move::RIGHT);
+        level->setMove(Move::RIGHT);
     }
 
 }
@@ -62,20 +68,20 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
 void MainWindow::keyReleaseEvent(QKeyEvent *event) {
     int key = event->key();
     if(key == Qt::Key_W || key == 1062) {
-        character->resetMove(Move::UP);
+        level->resetMove(Move::UP);
     }
     if (key == Qt::Key_A || key == 1060) {
-        character->resetMove(Move::LEFT);
+        level->resetMove(Move::LEFT);
     }
     if (key == Qt::Key_S || key == 1067) {
-        character->resetMove(Move::DOWN);
+        level->resetMove(Move::DOWN);
     }
     if (key == Qt::Key_D || key == 1042) {
-        character->resetMove(Move::RIGHT);
+        level->resetMove(Move::RIGHT);
     }
-    if (ui->character->pos() != character->getStartPos()) {
-       // std::exit(0);
-    }
+//    if (ui->character->pos() != character->getStartPos()) {
+//       // std::exit(0);
+//    }
 }
 
 
@@ -88,23 +94,37 @@ void MainWindow::setPicture(std::string path, QLabel* pic) {
     return;
 }
 
-bool MainWindow::isMovePossible() {
-    if (character->getStartPos().rx() < 1 || character->getEndPos().rx() > 1920 ||
-        character->getStartPos().ry() < 1  || character->getEndPos().ry() > 900) {
-        return false;
-    }
-    for (auto & i : barriers) {
-//         if (!(i.isMovePosible(character->getStartPos(), character->getEndPos()))) {
-//             return false;
-//         }
-        if (i.isCrossed(character->getStartPos(), character->getEndPos())) {
-            return false;
-        }
-    }
-    return true;
+void MainWindow::resetLevel(std::string path) {
+
+//    if (level != nullptr) {
+//        delete level;
+//        for (auto &i : labels) {
+//            delete i;
+//        }
+//        labels.clear();
+//    }
+    level = new Level(path, this);
+    Character* character = new Character(":/new/prefix1/pictures/character.png",
+                              ":/new/prefix1/pictures/character(mirrored).png",  ui->character, level,
+                              QPoint(10,200), QPoint(100, 310));
+    level->setCharacter(character);
+
+}
+
+QLabel* MainWindow::getNewVector(std::string style) {
+    QLabel* label = new QLabel(this);
+    //label->setStyleSheet(QString::fromStdString(style));
+    labels.push_back(label);
+    labels[labels.size() - 1]->setStyleSheet(QString::fromStdString(style));
+    return labels[labels.size() - 1];
+}
+
+QVector <QLabel*> MainWindow::getLabels() {
+    return labels;
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
+

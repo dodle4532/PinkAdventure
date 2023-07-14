@@ -6,9 +6,11 @@
 #include <string>
 #include <vector>
 #include <set>
-#include "mainwindow.h"
+#include "level.h"
+#include "gameobject.h"
 
 class MainWindow;
+class Level;
 
 enum class Move {
     LEFT = 1,
@@ -17,26 +19,21 @@ enum class Move {
     DOWN
 };
 
-class Character
+class Character : public GameObject
 {
 public:
-    Character(std::string _url, std::string url_2, QLabel* _label, MainWindow* _window, QPoint _startPos, QPoint _endPos);
+    Character(std::string _url, std::string url_2, QLabel* _label, Level* _level, QPoint _startPos, QPoint _endPos);
     void move();
     void resetMove(Move move);
     void setMove(Move move);
     void fall();
-    QPoint getStartPos() const;
-    QPoint getEndPos() const;
     void resetJumpCount();
 
 private:
     std::string url;
     std::string urlMirror;
-    QLabel* label;
     std::set <Move> moves;
-    MainWindow* window;
-    QPoint startPos;
-    QPoint endPos;
+    Level* level;
 
     int jumpCount;
     bool isMirrored;
