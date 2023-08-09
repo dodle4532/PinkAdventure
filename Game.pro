@@ -17,8 +17,7 @@ SOURCES += main.cpp\
         character.cpp \
         barrier.cpp \
         gameobject.cpp \
-        level.cpp \
-    killingobject.cpp
+        level.cpp
 
 HEADERS  += mainwindow.h \
         header.h \
@@ -26,8 +25,7 @@ HEADERS  += mainwindow.h \
         barrier.h \
         barrier.h \
         gameobject.h \
-        level.h \
-    killingobject.h
+        level.h
 
 FORMS    += mainwindow.ui
 

@@ -16,6 +16,10 @@ public:
     Barrier(QLabel* _label, QPoint _startPos, QPoint _endPos);
     bool isMovePosible(QPoint _startPos, QPoint _endPos);
     bool isCrossed(QPoint _startPos, QPoint _endPos);
+    void move(Move move);
+    bool isVisible();
+    void activate();
+    void deactivate();
 };
 
 #endif // BARRIRER_H

@@ -1,10 +1,5 @@
 #include "gameobject.h"
 
-GameObject::GameObject()
-{
-
-}
-
 QPoint GameObject::getStartPos() const {
     return startPos;
 }

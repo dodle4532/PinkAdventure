@@ -79,3 +79,53 @@ bool Barrier::isCrossed(QPoint _startPos, QPoint _endPos) {
     }
     return false;
 }
+
+void Barrier::move(Move move) {
+    if (move == Move::RIGHT) {
+        startPos = QPoint(startPos.rx() + 2, startPos.ry());
+        endPos = QPoint(endPos.rx() + 2, endPos.ry());
+        label->move(label->pos() + QPoint(2, 0));
+    }
+    if (move == Move::LEFT) {
+        startPos = QPoint(startPos.rx() - 2, startPos.ry());
+        endPos = QPoint(endPos.rx() - 2, endPos.ry());
+        label->move(label->pos() + QPoint(-2, 0));
+    }
+    if (move == Move::DOWN) {
+        startPos = QPoint(startPos.rx(), startPos.ry() + 2);
+        endPos = QPoint(endPos.rx(), endPos.ry() + 2);
+        if (label->pos().ry() < 611) {
+            label->move(label->pos() + QPoint(0, 2));
+        }
+    }
+    if (move == Move::UP) {
+        startPos = QPoint(startPos.rx(), startPos.ry() - 5);
+        endPos = QPoint(endPos.rx(), endPos.ry() - 5);
+        label->move(label->pos() + QPoint(0, -5));
+    }
+}
+
+bool Barrier::isVisible() {
+    if (startPos.rx() > 0 && endPos.rx() < 1920 &&
+        startPos.ry() > 0 && endPos.ry() < 900)
+    {
+        return true;
+    }
+    return false;
+}
+
+void Barrier::activate() {
+    if (!(isVisible())) {
+        startPos.rx() += 2000;
+        endPos.rx() += 2000;
+        label->setVisible(true);
+    }
+}
+
+void Barrier::deactivate() {
+    if (isVisible()) {
+        startPos.rx() -= 2000;
+        endPos.rx() -= 2000;
+        label->setVisible(false);
+    }
+}

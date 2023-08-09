@@ -4,12 +4,17 @@
 #include <QLabel>
 #include <QPoint>
 
-
+enum class Move {
+    LEFT = 1,
+    RIGHT,
+    UP,
+    DOWN
+};
 
 class GameObject
 {
 public:
-    GameObject();
+    GameObject() = default;
     QPoint getStartPos() const;
     QPoint getEndPos() const;
 

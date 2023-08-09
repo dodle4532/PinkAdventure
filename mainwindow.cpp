@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     for (auto & i : labels) {
         i = new QLabel(this);
     }
-    resetLevel("Test.txt");
+    resetLevel();
 
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(fall()));
@@ -49,6 +49,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     if (key == Qt::Key_Escape) {
         std::cout << ui->character->pos().rx() << " " << ui->character->pos().ry() << std::endl;
         std::exit(0);
+    }
+    if (key == Qt::Key_R) {
+        resetLevel();
     }
     if(GetAsyncKeyState(Qt::Key_W)) {
         level->setMove(Move::UP);
@@ -94,7 +97,12 @@ void MainWindow::setPicture(std::string path, QLabel* pic) {
     return;
 }
 
-void MainWindow::resetLevel(std::string path) {
+void MainWindow::setNewCheckpoint(QPoint startPos, QPoint endPos) {
+    charCheckPointPos.first = startPos;
+    charCheckPointPos.second = endPos;
+}
+
+void MainWindow::resetLevel() {
 
 //    if (level != nullptr) {
 //        delete level;
@@ -103,11 +111,17 @@ void MainWindow::resetLevel(std::string path) {
 //        }
 //        labels.clear();
 //    }
-    level = new Level(path, this);
+    if (levelNumber == 5) {
+        std::exit(0);
+    }
+    level = new Level("Test" + std::to_string(levelNumber) + ".txt", this);
     Character* character = new Character(":/new/prefix1/pictures/character.png",
                               ":/new/prefix1/pictures/character(mirrored).png",  ui->character, level,
-                              QPoint(10,200), QPoint(100, 310));
+                              charCheckPointPos.first, charCheckPointPos.second);
     level->setCharacter(character);
+    if (checkpointNumber > 0) {
+        level->moveCamera();
+    }
 
 }
 
@@ -121,6 +135,16 @@ QLabel* MainWindow::getNewVector(std::string style) {
 
 QVector <QLabel*> MainWindow::getLabels() {
     return labels;
+}
+
+void MainWindow::nextLevel() {
+    levelNumber++;
+    checkpointNumber = 0;
+    charCheckPointPos = {QPoint(10,600), QPoint(100, 710)};
+}
+
+void MainWindow::increaseCheckpointNumber() {
+    checkpointNumber++;
 }
 
 MainWindow::~MainWindow()

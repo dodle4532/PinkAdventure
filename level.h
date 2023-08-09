@@ -16,7 +16,7 @@ class Level
 {
 public:
     Level() = default;
-    Level(Character* _character, std::vector <Barrier> _barriers, MainWindow* _window, Barrier* _finish);
+    Level(Character* _character, std::vector <Barrier> _barriers, MainWindow* _window);
     Level(std::string path, MainWindow* _window, Character* _character = nullptr);
 
     void fall();
@@ -38,14 +38,46 @@ public:
     void setCharacter(Character* _character);
 
     bool isFinish();
+    bool isDead();
+    bool isJumpReset();
+    bool isKey();
 
-    void resetLevel(std::string path);
+    void resetLevel();
+
+    void moveAllObjects(Move move);
+
+    bool isMovingCameraNeed();
+
+    void moveCamera();
+
+    void increaseCharacterJumpCount();
+
+    void nextLevel();
+
+    void deactivateObject();
+    void activateObject();
+    void keyDisappear();
+
+    void setNewCheckpoint();
+    void increaseCheckpointNumber();
 
 private:
     Character* character;
     std::vector <Barrier> barriers;
     MainWindow* window;
-    Barrier* finish;
+
+    /*
+    finish - 0
+    moveCameraObject - 1
+    keyObject - 2
+    */
+    std::vector<Barrier*> otherObjects;
+
+    std::vector <Barrier*> killingObjects;
+
+    std::vector <Barrier*> jumpingObjects;
+
+    int elementIndex = -1;
 
 //private slots:
 };

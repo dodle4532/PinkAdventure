@@ -12,22 +12,18 @@
 class MainWindow;
 class Level;
 
-enum class Move {
-    LEFT = 1,
-    RIGHT,
-    UP,
-    DOWN
-};
-
 class Character : public GameObject
 {
 public:
     Character(std::string _url, std::string url_2, QLabel* _label, Level* _level, QPoint _startPos, QPoint _endPos);
     void move();
+    void move(Move move);
     void resetMove(Move move);
     void setMove(Move move);
     void fall();
     void resetJumpCount();
+    int getJumpCount();
+    void increaseJumpCount();
 
 private:
     std::string url;
