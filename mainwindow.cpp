@@ -7,6 +7,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    level = nullptr;
     this->setWindowState(Qt::WindowMaximized);
 //    this->setWindowState(Qt::WindowFullScreen);   полноэкранный режим
 
@@ -15,14 +16,14 @@ MainWindow::MainWindow(QWidget *parent) :
                         "}");
 
     labels.resize(100);
-    for (auto & i : labels) {
-        i = new QLabel(this);
-    }
+//    for (auto & i : labels) {
+//        i = new QLabel(this);
+//    }
     resetLevel();
 
     QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(fall()));
     connect(timer, SIGNAL(timeout()), this, SLOT(move()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(fall()));
     timer->start(5);
     ui->floor->resize(10000, 1000);
     ui->floor->move(ui->floor->pos() + QPoint(0, 200));
@@ -44,24 +45,38 @@ void MainWindow::move() {
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {
     int key = event->key();
-//    std::cout << key;
+//    std::cout << key << std::endl;
 //    std::cout << ui->character->pos().rx() << " " << ui->character->pos().ry() << " " << character->getStartPos().rx() << " " << character->getStartPos().ry() << std::endl;
     if (key == Qt::Key_Escape) {
         std::cout << ui->character->pos().rx() << " " << ui->character->pos().ry() << std::endl;
         std::exit(0);
     }
+
     if (key == Qt::Key_R) {
         resetLevel();
     }
+
+    if (key == 16777220) {
+        if (level != nullptr) {
+            if (level->isTextLevel) {
+                nextLevel();
+                resetLevel();
+            }
+        }
+    }
+
     if(GetAsyncKeyState(Qt::Key_W)) {
         level->setMove(Move::UP);
     }
+
     if (GetAsyncKeyState(Qt::Key_A)) {
         level->setMove(Move::LEFT);
     }
+
     if (GetAsyncKeyState(Qt::Key_S)) {
         level->setMove(Move::DOWN);
     }
+
     if (GetAsyncKeyState(Qt::Key_D)) {
         level->setMove(Move::RIGHT);
     }
@@ -104,13 +119,23 @@ void MainWindow::setNewCheckpoint(QPoint startPos, QPoint endPos) {
 
 void MainWindow::resetLevel() {
 
-//    if (level != nullptr) {
-//        delete level;
-//        for (auto &i : labels) {
-//            delete i;
-//        }
-//        labels.clear();
-//    }
+    if (level != nullptr) {
+        if (level->isTextLevel) {
+            for (int i = 0; i < level->textCount(); ++i) {
+                labels[i]->setText("");
+            }
+        }
+    }
+    labels.clear();
+    labels.resize(100);
+    for (auto & i : labels) {
+        i = new QLabel(this);
+    }
+    if (levelNumber > 0) {
+        for (int i = 0; i < labels.size(); ++i) {
+            labels[i]->setVisible(true);
+        }
+    }
     if (levelNumber == 5) {
         std::exit(0);
     }
@@ -118,6 +143,12 @@ void MainWindow::resetLevel() {
     Character* character = new Character(":/new/prefix1/pictures/character.png",
                               ":/new/prefix1/pictures/character(mirrored).png",  ui->character, level,
                               charCheckPointPos.first, charCheckPointPos.second);
+    if (level->isTextLevel) {
+        ui->character->setVisible(false);
+    }
+    else {
+        ui->character->setVisible(true);
+    }
     level->setCharacter(character);
     if (checkpointNumber > 0) {
         level->moveCamera();

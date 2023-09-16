@@ -74,6 +74,9 @@ void Character::move(Move move) {
 }
 
 void Character::move() {
+    if (level->isTextLevel) {
+        return;
+    }
     for (Move i : moves) {
         move(i);
     }
@@ -114,6 +117,9 @@ void Character::resetJumpCount() {
 }
 
 void Character::fall() {
+    if (level->isTextLevel) {
+        return;
+    }
     startPos = QPoint(startPos.rx(), startPos.ry() + 2);
     endPos = QPoint(endPos.rx(), endPos.ry() + 2);
     if (level->isMovePossible()) {

@@ -24,6 +24,11 @@ void parse(std::string style, std::string& str, Barrier*& barrier, int& i, MainW
     std::getline(ss, endY, ' ');
     barrier = new Barrier(window->labels[i],
                          QPoint(std::stoi(startX), std::stoi(startY)), QPoint(std::stoi(endX), std::stoi(endY)));
+    std::getline(ss, style, '"');
+    std::getline(ss, style, '"');
+    if (style != "") {
+        //window->labels[i]->setStyleSheet(QString::fromStdString(style));
+    }
     ++i;
 }
 
@@ -33,7 +38,7 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
     otherObjects.resize(2);
     std::ifstream fd;
     std::string str;
-    std::stringstream ss;
+    //std::stringstream ss;
     std::string startX;
     std::string startY;
     std::string endX;
@@ -48,95 +53,140 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
 
     // Мэйби под одну функцию
 
-    if (str == "Barriers:" || str == "Barriers:\n") {
-        while (!(fd.eof())) {
+
+    if (str == "Text:") {
+        while (!(fd.eof() || str == "Barriers:")) {
             std::getline(fd, str);
-            if (str == "Finish:" || str == "Finish\n") {
+            if (str == "Barriers:") {
                 break;
             }
-            Barrier* barrier;
-            parse("background-color: rgb(0, 170, 0);", str, barrier, i, window,
-                  startX, startY, endX, endY);
-            barriers.push_back(*barrier);
+            std::stringstream ss;
+            std::string style;
+            ss.str(str);
+            std::getline(ss, startX, ' ');
+            std::getline(ss, startY, ' ');
+            std::getline(ss, endX, ' ');
+            std::getline(ss, endY, ' ');
+
+            std::getline(ss, style, '"');
+            std::getline(ss, style, '"');
+            window->labels[i]->setText(QString::fromStdString(style));
+            window->labels[i]->setStyleSheet("color: white;font-size:50px");
+
+            Barrier* barrier = new Barrier(window->labels[i],
+                                 QPoint(std::stoi(startX), std::stoi(startY)),
+                                 QPoint(std::stoi(endX), std::stoi(endY)));
+            text.push_back(*barrier);
+            ++i;
+            if (str == "") {
+                break;
+            }
         }
     }
-
-    //Finish
-    std::getline(fd, str);
-    parse("background-color: rgb(170, 0, 0);", str, otherObjects[0], i, window,
-          startX, startY, endX, endY);
-
-    // MovingObject
-    std::getline(fd, str);
-    if (str == "MovingObjects:" || str == "MovingObjects:\n") {
-        std::getline(fd, str);
-        parse("background-color: rgb(0, 0, 170);", str, otherObjects[1], i, window,
-              startX, startY, endX, endY);
+    if (fd.eof()) {
+        isTextLevel = true;
     }
     else {
-        otherObjects[1] = new Barrier(new QLabel,
-                                  QPoint(1, 1), QPoint(1, 1));
-    }
+        if (str == "Barriers:" || str == "Barriers:\n") {
+            while (!(fd.eof())) {
+                std::getline(fd, str);
+                if (str == "Finish:" || str == "Finish\n") {
+                    break;
+                }
+                Barrier* barrier;
+                parse("background-color: rgb(0, 170, 0);", str, barrier, i, window,
+                      startX, startY, endX, endY);
+                barriers.push_back(*barrier);
+            }
+        }
 
-    //KillingObjects
-    int j = 0;
-    std::getline(fd, str);
-    if (str == "KillingObjects:") {
-        while(!(fd.eof())) {
-            std::getline(fd,str);
-            if (fd.eof()) {
-                break;
-            }
-            if (str == "JumpingObjects:" || str == "/") {
-                break;
-            }
-            killingObjects.resize(killingObjects.size() + 1);
-            parse("background-color: rgb(0, 170, 170);", str, killingObjects[j], i, window,
-                  startX, startY, endX, endY);
-            ++j;
-        }
-    }
-    if (str == "/") {
-        std::getline(fd,str);
-    }
-    j = 0;
-    if (str == "JumpingObjects:") {
-        while(!(fd.eof())) {
-            std::getline(fd,str);
-            if (fd.eof()) {
-                break;
-            }
-            if (str == "KeyObjects:" || str == "/") {
-                break;
-            }
-            jumpingObjects.resize(jumpingObjects.size() + 1);
-            parse("background-color: rgb(170, 0, 170);", str, jumpingObjects[j], i, window,
-                  startX, startY, endX, endY);
-            ++j;
-        }
-    }
-    if (str == "/") {
-        std::getline(fd,str);
-    }
-    if (str == "KeyObjects:" || str == "KeyObjects:\n") {
+        //Finish
         std::getline(fd, str);
-        parse("background-color: rgb(170, 10, 170);", str, otherObjects[2], i, window,
+        parse("background-color: rgb(170, 0, 0);", str, otherObjects[0], i, window,
               startX, startY, endX, endY);
-        std::string elemIndex;
-        std::stringstream ss;
-        ss.str(str);
-        //Доработать
-        std::getline(ss, elemIndex, ' ');
-        std::getline(ss, elemIndex, ' ');
-        std::getline(ss, elemIndex, ' ');
-        std::getline(ss, elemIndex, ' ');
-        std::getline(ss, elemIndex, ' ');
-        elementIndex = std::stoi(elemIndex) - 1;
-        deactivateObject();
-    }
-    else {
-        otherObjects[2] = new Barrier(new QLabel,
-                                  QPoint(1, 1), QPoint(1, 1));
+
+        // MovingObject
+        std::getline(fd, str);
+        if (str == "MovingObjects:" || str == "MovingObjects:\n") {
+            std::getline(fd, str);
+            parse("background-color: rgb(0, 0, 170);", str, otherObjects[1], i, window,
+                  startX, startY, endX, endY);
+        }
+        else {
+            otherObjects[1] = new Barrier(new QLabel,
+                                      QPoint(1, 1), QPoint(1, 1));
+        }
+
+        //KillingObjects
+        int j = 0;
+        std::getline(fd, str);
+        if (str == "KillingObjects:") {
+            while(!(fd.eof())) {
+                std::getline(fd,str);
+                if (fd.eof()) {
+                    break;
+                }
+                if (str == "JumpingObjects:" || str == "/") {
+                    break;
+                }
+                killingObjects.resize(killingObjects.size() + 1);
+                parse("background-color: rgb(0, 170, 170);", str, killingObjects[j], i, window,
+                      startX, startY, endX, endY);
+                ++j;
+            }
+        }
+        if (str == "/") {
+            std::getline(fd,str);
+        }
+        j = 0;
+        if (str == "JumpingObjects:") {
+            while(!(fd.eof())) {
+                std::getline(fd,str);
+                if (fd.eof()) {
+                    break;
+                }
+                if (str == "KeyObjects:" || str == "/") {
+                    break;
+                }
+                jumpingObjects.resize(jumpingObjects.size() + 1);
+                parse("background-color: rgb(170, 0, 170);", str, jumpingObjects[j], i, window,
+                      startX, startY, endX, endY);
+                ++j;
+            }
+        }
+        if (str == "/") {
+            std::getline(fd,str);
+        }
+        if (str == "KeyObjects:" || str == "KeyObjects:\n") {
+            std::getline(fd, str);
+    //        parse("background-color: rgb(170, 100, 170);", str, otherObjects[2], i, window,
+    //              startX, startY, endX, endY);
+            std::string elemIndex;
+            std::stringstream ss;
+            ss.str(str);
+            window->labels[i]->setStyleSheet("background-color: rgb(170, 100, 170);");
+            ss.str(str);
+            std::getline(ss, startX, ' ');
+            std::getline(ss, startY, ' ');
+            std::getline(ss, endX, ' ');
+            std::getline(ss, endY, ' ');
+            otherObjects[2] = new Barrier(window->labels[i],
+                                 QPoint(std::stoi(startX), std::stoi(startY)),
+                                        QPoint(std::stoi(endX), std::stoi(endY)));
+
+            //Доработать
+    //        std::getline(ss, elemIndex, ' ');
+    //        std::getline(ss, elemIndex, ' ');
+    //        std::getline(ss, elemIndex, ' ');
+    //        std::getline(ss, elemIndex, ' ');
+            std::getline(ss, elemIndex, ' ');
+            elementIndex = std::stoi(elemIndex) - 1;
+            deactivateObject();
+        }
+        else {
+            otherObjects[2] = new Barrier(new QLabel,
+                                      QPoint(1, 1), QPoint(1, 1));
+        }
     }
     //barriers.resize(1);
 }
@@ -254,6 +304,9 @@ void Level::moveCamera() {
 }
 
 void Level::resetLevel() {
+    for (int i = 0; i < window->labels.size(); ++i) {
+        window->labels[i]->setVisible(false);
+    }
     window->resetLevel();
 }
 
@@ -322,4 +375,8 @@ void Level::setNewCheckpoint() {
 
 void Level::increaseCheckpointNumber() {
     window->increaseCheckpointNumber();
+}
+
+int Level::textCount() {
+    return text.size();
 }

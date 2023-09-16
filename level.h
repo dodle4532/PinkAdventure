@@ -61,9 +61,14 @@ public:
     void setNewCheckpoint();
     void increaseCheckpointNumber();
 
+    bool isTextLevel = false;
+
+    int textCount();
+
 private:
     Character* character;
     std::vector <Barrier> barriers;
+    std::vector <Barrier> text;
     MainWindow* window;
 
     /*
