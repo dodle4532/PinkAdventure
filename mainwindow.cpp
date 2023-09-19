@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
                         " border-image: url(:/new/prefix1/pictures/background.jpg) 0 0 0 0 stretch stretch;"
                         "}");
 
-    labels.resize(100);
+    labels.resize(MAX_LABELS);
 //    for (auto & i : labels) {
 //        i = new QLabel(this);
 //    }
@@ -25,8 +25,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(timer, SIGNAL(timeout()), this, SLOT(move()));
     connect(timer, SIGNAL(timeout()), this, SLOT(fall()));
     timer->start(5);
-    ui->floor->resize(10000, 1000);
-    ui->floor->move(ui->floor->pos() + QPoint(0, 200));
+//    ui->floor->resize(10000, 1000);
+//    ui->floor->move(ui->floor->pos() + QPoint(0, 200));
 //    std::vector <Barrier> barriers;
 //    barriers.push_back(Barrier(ui->barrier_1, QPoint(300, 700), QPoint(550, 750)));
 //    barriers.push_back(Barrier(ui->barrier_2, QPoint(400, 650), QPoint(550, 700)));
@@ -127,7 +127,7 @@ void MainWindow::resetLevel() {
         }
     }
     labels.clear();
-    labels.resize(100);
+    labels.resize(MAX_LABELS);
     for (auto & i : labels) {
         i = new QLabel(this);
     }
@@ -139,10 +139,10 @@ void MainWindow::resetLevel() {
     if (levelNumber == 5) {
         std::exit(0);
     }
-    level = new Level("Test" + std::to_string(levelNumber) + ".txt", this);
     Character* character = new Character(":/new/prefix1/pictures/character.png",
-                              ":/new/prefix1/pictures/character(mirrored).png",  ui->character, level,
+                              ":/new/prefix1/pictures/character(mirrored).png",  ui->character,
                               charCheckPointPos.first, charCheckPointPos.second);
+    level = new Level("Test" + std::to_string(levelNumber) + ".txt", this, character);
     if (level->isTextLevel) {
         ui->character->setVisible(false);
     }

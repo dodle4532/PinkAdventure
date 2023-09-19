@@ -1,6 +1,8 @@
 #ifndef GAMEOBJECT_H
 #define GAMEOBJECT_H
 
+#include "header.h"
+
 #include <QLabel>
 #include <QPoint>
 

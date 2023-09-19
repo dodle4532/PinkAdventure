@@ -15,7 +15,7 @@ class Level;
 class Character : public GameObject
 {
 public:
-    Character(std::string _url, std::string url_2, QLabel* _label, Level* _level, QPoint _startPos, QPoint _endPos);
+    Character(std::string _url, std::string url_2, QLabel* _label, QPoint _startPos, QPoint _endPos);
     void move();
     void move(Move move);
     void resetMove(Move move);
@@ -24,6 +24,7 @@ public:
     void resetJumpCount();
     int getJumpCount();
     void increaseJumpCount();
+    void setLevel(Level* level);
 
 private:
     std::string url;

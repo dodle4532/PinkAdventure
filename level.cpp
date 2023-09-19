@@ -3,6 +3,12 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#define BARRIER_LABEL "background-color: rgb(0, 170, 0);"
+#define FINISH_LABEL "background-color: rgb(170, 0, 0);"
+#define MOVING_OBJECT_LABEL "background-color: rgb(0, 0, 170);"
+#define KILLING_OBJECT_LABEL "background-color: rgb(0, 170, 170);"
+#define JUMPING_OBJECT_LABEL "background-color: rgb(170, 170, 0);"
+#define KEY_OBJECT_LABEL "background-color: rgb(170, 100, 170);"
 
 Level::Level(Character* _character, std::vector <Barrier> _barriers, MainWindow* _window) :
     character(_character), barriers(_barriers), window(_window)
@@ -36,6 +42,9 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
     character(_character), window(_window)
 {
     otherObjects.resize(2);
+    if (character != nullptr) {
+        character->setLevel(this);
+    }
     std::ifstream fd;
     std::string str;
     //std::stringstream ss;
@@ -94,7 +103,7 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
                     break;
                 }
                 Barrier* barrier;
-                parse("background-color: rgb(0, 170, 0);", str, barrier, i, window,
+                parse(BARRIER_LABEL, str, barrier, i, window,
                       startX, startY, endX, endY);
                 barriers.push_back(*barrier);
             }
@@ -109,7 +118,7 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
         std::getline(fd, str);
         if (str == "MovingObjects:" || str == "MovingObjects:\n") {
             std::getline(fd, str);
-            parse("background-color: rgb(0, 0, 170);", str, otherObjects[1], i, window,
+            parse(MOVING_OBJECT_LABEL, str, otherObjects[1], i, window,
                   startX, startY, endX, endY);
         }
         else {
@@ -130,7 +139,7 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
                     break;
                 }
                 killingObjects.resize(killingObjects.size() + 1);
-                parse("background-color: rgb(0, 170, 170);", str, killingObjects[j], i, window,
+                parse(KILLING_OBJECT_LABEL, str, killingObjects[j], i, window,
                       startX, startY, endX, endY);
                 ++j;
             }
@@ -149,7 +158,7 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
                     break;
                 }
                 jumpingObjects.resize(jumpingObjects.size() + 1);
-                parse("background-color: rgb(170, 0, 170);", str, jumpingObjects[j], i, window,
+                parse(JUMPING_OBJECT_LABEL, str, jumpingObjects[j], i, window,
                       startX, startY, endX, endY);
                 ++j;
             }
@@ -164,7 +173,7 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
             std::string elemIndex;
             std::stringstream ss;
             ss.str(str);
-            window->labels[i]->setStyleSheet("background-color: rgb(170, 100, 170);");
+            window->labels[i]->setStyleSheet(KEY_OBJECT_LABEL);
             ss.str(str);
             std::getline(ss, startX, ' ');
             std::getline(ss, startY, ' ');

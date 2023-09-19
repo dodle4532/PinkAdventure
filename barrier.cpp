@@ -11,25 +11,25 @@ Barrier::Barrier(QLabel* _label, QPoint _startPos, QPoint _endPos)
 
 bool Barrier::isMovePosible(QPoint _startPos, QPoint _endPos) {
         if (_endPos.rx() <= startPos.rx()) {
-            if (_endPos.rx() + 2 >= startPos.rx()) {
+            if (_endPos.rx() + HORIZONTAL_MOVEMENT >= startPos.rx()) {
                 return false;
             }
         }
 
         if (_startPos.rx() >= endPos.rx()) {
-            if (_startPos.rx() - 2 <= endPos.rx()) {
+            if (_startPos.rx() - HORIZONTAL_MOVEMENT <= endPos.rx()) {
                 return false;
             }
         }
 
         if (_endPos.ry() <= startPos.ry()) {
-            if (_endPos.ry() + 1 > startPos.ry()) {
+            if (_endPos.ry() + DOWN_MOVEMENT > startPos.ry()) {
                 return false;
             }
         }
 
         if (_startPos.ry() >= endPos.ry()) {
-            if (_startPos.ry() - 5 <= endPos.ry()) {
+            if (_startPos.ry() - UP_MOVEMENT <= endPos.ry()) {
                 return false;
             }
         }
@@ -82,32 +82,32 @@ bool Barrier::isCrossed(QPoint _startPos, QPoint _endPos) {
 
 void Barrier::move(Move move) {
     if (move == Move::RIGHT) {
-        startPos = QPoint(startPos.rx() + 2, startPos.ry());
-        endPos = QPoint(endPos.rx() + 2, endPos.ry());
-        label->move(label->pos() + QPoint(2, 0));
+        startPos = QPoint(startPos.rx() + HORIZONTAL_MOVEMENT, startPos.ry());
+        endPos = QPoint(endPos.rx() + HORIZONTAL_MOVEMENT, endPos.ry());
+        label->move(label->pos() + QPoint(HORIZONTAL_MOVEMENT, SCREEN_BOARD_START_Y));
     }
     if (move == Move::LEFT) {
-        startPos = QPoint(startPos.rx() - 2, startPos.ry());
-        endPos = QPoint(endPos.rx() - 2, endPos.ry());
-        label->move(label->pos() + QPoint(-2, 0));
+        startPos = QPoint(startPos.rx() - HORIZONTAL_MOVEMENT, startPos.ry());
+        endPos = QPoint(endPos.rx() - HORIZONTAL_MOVEMENT, endPos.ry());
+        label->move(label->pos() + QPoint(-HORIZONTAL_MOVEMENT, SCREEN_BOARD_START_Y));
     }
     if (move == Move::DOWN) {
-        startPos = QPoint(startPos.rx(), startPos.ry() + 2);
-        endPos = QPoint(endPos.rx(), endPos.ry() + 2);
-        if (label->pos().ry() < 611) {
-            label->move(label->pos() + QPoint(0, 2));
+        startPos = QPoint(startPos.rx(), startPos.ry() + DOWN_MOVEMENT);
+        endPos = QPoint(endPos.rx(), endPos.ry() + DOWN_MOVEMENT);
+        if (label->pos().ry() < SCREEN_BOARD_END_Y) {
+            label->move(label->pos() + QPoint(SCREEN_BOARD_START_X, DOWN_MOVEMENT));
         }
     }
     if (move == Move::UP) {
-        startPos = QPoint(startPos.rx(), startPos.ry() - 5);
-        endPos = QPoint(endPos.rx(), endPos.ry() - 5);
-        label->move(label->pos() + QPoint(0, -5));
+        startPos = QPoint(startPos.rx(), startPos.ry() - UP_MOVEMENT);
+        endPos = QPoint(endPos.rx(), endPos.ry() - UP_MOVEMENT);
+        label->move(label->pos() + QPoint(SCREEN_BOARD_START_X, -UP_MOVEMENT));
     }
 }
 
 bool Barrier::isVisible() {
-    if (startPos.rx() > 0 && endPos.rx() < 1920 &&
-        startPos.ry() > 0 && endPos.ry() < 900)
+    if (startPos.rx() > SCREEN_BOARD_START_X && endPos.rx() < SCREEN_BOARD_END_X &&
+        startPos.ry() > SCREEN_BOARD_START_Y && endPos.ry() < SCREEN_BOARD_END_Y)
     {
         return true;
     }
@@ -116,16 +116,16 @@ bool Barrier::isVisible() {
 
 void Barrier::activate() {
     if (!(isVisible())) {
-        startPos.rx() += 2000;
-        endPos.rx() += 2000;
+        startPos.rx() += PARAM_TO_OUT_OF_BOARD;
+        endPos.rx() += PARAM_TO_OUT_OF_BOARD;
         label->setVisible(true);
     }
 }
 
 void Barrier::deactivate() {
     if (isVisible()) {
-        startPos.rx() -= 2000;
-        endPos.rx() -= 2000;
+        startPos.rx() -= PARAM_TO_OUT_OF_BOARD;
+        endPos.rx() -= PARAM_TO_OUT_OF_BOARD;
         label->setVisible(false);
     }
 }
