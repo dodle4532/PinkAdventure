@@ -10,6 +10,14 @@ enum class Move;
 class Barrier;
 class MainWindow;
 
+enum class Object {
+    BARRIER = 0,
+    FINISH,
+    MOVING_OBJECT,
+    KILLING_OBJECT,
+    JUMPING_OBJECT
+};
+
 
 
 class Level
@@ -65,8 +73,21 @@ public:
 
     int textCount();
 
+    Barrier* getNewObject(Object o);
+
+    int getLabelMaxIndex();
+
+    void setChangingObject(QPoint pos);
+    void moveChangingObject(QPoint pos);
+    void resizeChangingObject(QPoint pos);
+    void updateLeftAndRightObject(int& min, int& max, Barrier* barrier);
+
+    int getRightPosX();
+    int getLeftPosX();
+
 private:
     Character* character;
+    Barrier* changingObject;
     std::vector <Barrier> barriers;
     std::vector <Barrier> text;
     MainWindow* window;
@@ -82,7 +103,11 @@ private:
 
     std::vector <Barrier*> jumpingObjects;
 
+    Barrier* leftObject;
+    Barrier* rightObject;
+
     int elementIndex = -1;
+    int labelMaxIndex = 0;
 
 //private slots:
 };

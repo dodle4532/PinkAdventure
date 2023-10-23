@@ -1,9 +1,11 @@
 #include "character.h"
 
-Character::Character(std::string _url, std::string url_2, QLabel* _label, QPoint _startPos, QPoint _endPos)
+Character::Character(std::string _url, std::string url_2, QLabel* _label, QPoint _startPos, QPoint _endPos,
+                     Level* level)
 {
     url =_url;
     urlMirror =url_2;
+    this->level = level;
     label =_label;
     jumpCount =0;
     isMirrored =false;
@@ -11,7 +13,7 @@ Character::Character(std::string _url, std::string url_2, QLabel* _label, QPoint
     endPos =_endPos;
     label->move(startPos);
     label->resize(abs(endPos.rx() - startPos.rx()), abs(endPos.ry() - startPos.ry()));
-//    level->setPicture(url, label);
+    level->setPicture(url, label);
 }
 
 void Character::setLevel(Level *level) {
@@ -23,6 +25,12 @@ void Character::move(Move move) {
         startPos = QPoint(startPos.rx() + HORIZONTAL_MOVEMENT, startPos.ry());
         endPos = QPoint(endPos.rx() + HORIZONTAL_MOVEMENT, endPos.ry());
         if (level->isMovePossible()) {
+            if (startPos.rx() > SCREEN_BOARD_END_X * 0.45 && level->getRightPosX() > SCREEN_BOARD_END_X * 0.9) {
+                level->moveAllObjects(Move::LEFT);
+                startPos = QPoint(startPos.rx() - HORIZONTAL_MOVEMENT, startPos.ry());
+                endPos = QPoint(endPos.rx() - HORIZONTAL_MOVEMENT, endPos.ry());
+                return;
+            }
             label->move(label->pos() + QPoint(HORIZONTAL_MOVEMENT, SCREEN_BOARD_START_Y));
             if (isMirrored == true) {
                 level->setPicture(url, label);
@@ -37,6 +45,12 @@ void Character::move(Move move) {
         startPos = QPoint(startPos.rx() - HORIZONTAL_MOVEMENT, startPos.ry());
         endPos = QPoint(endPos.rx() - HORIZONTAL_MOVEMENT, endPos.ry());
         if (level->isMovePossible()) {
+            if (startPos.rx() < SCREEN_BOARD_END_X * 0.3 && level->getLeftPosX() < SCREEN_BOARD_END_X * 0.1) {
+                level->moveAllObjects(Move::RIGHT);
+                startPos = QPoint(startPos.rx() + HORIZONTAL_MOVEMENT, startPos.ry());
+                endPos = QPoint(endPos.rx() + HORIZONTAL_MOVEMENT, endPos.ry());
+                return;
+            }
             label->move(label->pos() + QPoint(-HORIZONTAL_MOVEMENT, SCREEN_BOARD_START_Y));
             if (isMirrored == false) {
                 level->setPicture(urlMirror, label);
@@ -101,12 +115,15 @@ void Character::move() {
         level->keyDisappear();
     }
     if (level->isJumpReset()) {
-        jumpCount = 0;
+        jumpCount = 1; // Не 0 что б не пересекалась со случаем, когда падаешь с объекта
     }
 }
 
 void Character::resetMove(Move move) {
     moves.erase(move);
+    if (move == Move::UP) {
+        jumpCount = MAX_JUMP_COUNT;
+    }
 }
 
 void Character::setMove(Move move) {
@@ -125,6 +142,9 @@ void Character::fall() {
     endPos = QPoint(endPos.rx(), endPos.ry() + FALL_MOVEMENT);
     if (level->isMovePossible()) {
         label->move(label->pos() + QPoint(SCREEN_BOARD_START_X, FALL_MOVEMENT));
+        if (jumpCount == 0) {
+            jumpCount = MAX_JUMP_COUNT;
+        }
         return;
     }
     resetJumpCount();

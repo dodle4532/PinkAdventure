@@ -3,12 +3,8 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#define BARRIER_LABEL "background-color: rgb(0, 170, 0);"
-#define FINISH_LABEL "background-color: rgb(170, 0, 0);"
-#define MOVING_OBJECT_LABEL "background-color: rgb(0, 0, 170);"
-#define KILLING_OBJECT_LABEL "background-color: rgb(0, 170, 170);"
-#define JUMPING_OBJECT_LABEL "background-color: rgb(170, 170, 0);"
-#define KEY_OBJECT_LABEL "background-color: rgb(170, 100, 170);"
+#define OTHER_OBJECTS_COUNT 2
+extern QString buttonsLabels[];
 
 Level::Level(Character* _character, std::vector <Barrier> _barriers, MainWindow* _window) :
     character(_character), barriers(_barriers), window(_window)
@@ -38,10 +34,28 @@ void parse(std::string style, std::string& str, Barrier*& barrier, int& i, MainW
     ++i;
 }
 
+void Level::updateLeftAndRightObject(int& min, int& max, Barrier* barrier) {
+    int start = barrier->getStartPos().rx();
+    int end = barrier->getEndPos().rx();
+    if (end > max) {
+        rightObject = barrier;
+        max = end;
+    }
+    if (start < min) {
+        leftObject = barrier;
+        min = start;
+    }
+}
+
 Level::Level(std::string path, MainWindow* _window, Character* _character) :
     character(_character), window(_window)
 {
-    otherObjects.resize(2);
+    int minStartX = SCREEN_BOARD_END_X;
+    int maxEndX = SCREEN_BOARD_START_X;
+    for (int i = 0; i < OTHER_OBJECTS_COUNT; ++i) {
+        otherObjects.push_back(nullptr);
+    }
+    changingObject = nullptr;
     if (character != nullptr) {
         character->setLevel(this);
     }
@@ -52,7 +66,7 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
     std::string startY;
     std::string endX;
     std::string endY;
-    int i = 0;
+    labelMaxIndex = 0;
     fd.open(path);
     if (!(fd.is_open())) {
         std::exit(0);
@@ -79,14 +93,15 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
 
             std::getline(ss, style, '"');
             std::getline(ss, style, '"');
-            window->labels[i]->setText(QString::fromStdString(style));
-            window->labels[i]->setStyleSheet("color: white;font-size:50px");
+            window->labels[labelMaxIndex]->setText(QString::fromStdString(style));
+            window->labels[labelMaxIndex]->setStyleSheet("color: rgb(0, 0, 250);font-size:50px");
 
-            Barrier* barrier = new Barrier(window->labels[i],
+            Barrier* barrier = new Barrier(window->labels[labelMaxIndex],
                                  QPoint(std::stoi(startX), std::stoi(startY)),
                                  QPoint(std::stoi(endX), std::stoi(endY)));
+            updateLeftAndRightObject(minStartX, maxEndX, barrier);
             text.push_back(*barrier);
-            ++i;
+            ++labelMaxIndex;
             if (str == "") {
                 break;
             }
@@ -94,109 +109,120 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
     }
     if (fd.eof()) {
         isTextLevel = true;
+        return;
+    }
+    if (str == "Barriers:" || str == "Barriers:\n") {
+        while (!(fd.eof())) {
+            std::getline(fd, str);
+            if (str == "Finish:" || str == "Finish\n") {
+                break;
+            }
+            Barrier* barrier;
+            parse(BARRIER_LABEL, str, barrier, labelMaxIndex, window,
+                  startX, startY, endX, endY);
+            updateLeftAndRightObject(minStartX, maxEndX, barrier);
+            barriers.push_back(*barrier);
+        }
+    }
+
+    //Finish
+    std::getline(fd, str);
+    parse("background-color: rgb(170, 0, 0);", str, otherObjects[0], labelMaxIndex, window,
+          startX, startY, endX, endY);
+    updateLeftAndRightObject(minStartX, maxEndX, otherObjects[0]);
+
+    // MovingObject
+    std::getline(fd, str);
+    if (str == "MovingObjects:" || str == "MovingObjects:\n") {
+        std::getline(fd, str);
+//            parse(MOVING_OBJECT_LABEL, str, otherObjects[1], labelMaxIndex, window,
+//                  startX, startY, endX, endY);
+        otherObjects[1] = new Barrier(new QLabel,
+                                  QPoint(1, 1), QPoint(1, 1));
     }
     else {
-        if (str == "Barriers:" || str == "Barriers:\n") {
-            while (!(fd.eof())) {
-                std::getline(fd, str);
-                if (str == "Finish:" || str == "Finish\n") {
-                    break;
-                }
-                Barrier* barrier;
-                parse(BARRIER_LABEL, str, barrier, i, window,
-                      startX, startY, endX, endY);
-                barriers.push_back(*barrier);
+        otherObjects[1] = new Barrier(new QLabel,
+                                  QPoint(1, 1), QPoint(1, 1));
+    }
+
+    //KillingObjects
+    int j = 0;
+    std::getline(fd, str);
+    if (str == "KillingObjects:") {
+        while(!(fd.eof())) {
+            std::getline(fd,str);
+            if (fd.eof()) {
+                break;
             }
-        }
-
-        //Finish
-        std::getline(fd, str);
-        parse("background-color: rgb(170, 0, 0);", str, otherObjects[0], i, window,
-              startX, startY, endX, endY);
-
-        // MovingObject
-        std::getline(fd, str);
-        if (str == "MovingObjects:" || str == "MovingObjects:\n") {
-            std::getline(fd, str);
-            parse(MOVING_OBJECT_LABEL, str, otherObjects[1], i, window,
+            if (str == "JumpingObjects:" || str == "/") {
+                break;
+            }
+            killingObjects.resize(killingObjects.size() + 1);
+            parse(KILLING_OBJECT_LABEL, str, killingObjects[j], labelMaxIndex, window,
                   startX, startY, endX, endY);
-        }
-        else {
-            otherObjects[1] = new Barrier(new QLabel,
-                                      QPoint(1, 1), QPoint(1, 1));
-        }
-
-        //KillingObjects
-        int j = 0;
-        std::getline(fd, str);
-        if (str == "KillingObjects:") {
-            while(!(fd.eof())) {
-                std::getline(fd,str);
-                if (fd.eof()) {
-                    break;
-                }
-                if (str == "JumpingObjects:" || str == "/") {
-                    break;
-                }
-                killingObjects.resize(killingObjects.size() + 1);
-                parse(KILLING_OBJECT_LABEL, str, killingObjects[j], i, window,
-                      startX, startY, endX, endY);
-                ++j;
-            }
-        }
-        if (str == "/") {
-            std::getline(fd,str);
-        }
-        j = 0;
-        if (str == "JumpingObjects:") {
-            while(!(fd.eof())) {
-                std::getline(fd,str);
-                if (fd.eof()) {
-                    break;
-                }
-                if (str == "KeyObjects:" || str == "/") {
-                    break;
-                }
-                jumpingObjects.resize(jumpingObjects.size() + 1);
-                parse(JUMPING_OBJECT_LABEL, str, jumpingObjects[j], i, window,
-                      startX, startY, endX, endY);
-                ++j;
-            }
-        }
-        if (str == "/") {
-            std::getline(fd,str);
-        }
-        if (str == "KeyObjects:" || str == "KeyObjects:\n") {
-            std::getline(fd, str);
-    //        parse("background-color: rgb(170, 100, 170);", str, otherObjects[2], i, window,
-    //              startX, startY, endX, endY);
-            std::string elemIndex;
-            std::stringstream ss;
-            ss.str(str);
-            window->labels[i]->setStyleSheet(KEY_OBJECT_LABEL);
-            ss.str(str);
-            std::getline(ss, startX, ' ');
-            std::getline(ss, startY, ' ');
-            std::getline(ss, endX, ' ');
-            std::getline(ss, endY, ' ');
-            otherObjects[2] = new Barrier(window->labels[i],
-                                 QPoint(std::stoi(startX), std::stoi(startY)),
-                                        QPoint(std::stoi(endX), std::stoi(endY)));
-
-            //Доработать
-    //        std::getline(ss, elemIndex, ' ');
-    //        std::getline(ss, elemIndex, ' ');
-    //        std::getline(ss, elemIndex, ' ');
-    //        std::getline(ss, elemIndex, ' ');
-            std::getline(ss, elemIndex, ' ');
-            elementIndex = std::stoi(elemIndex) - 1;
-            deactivateObject();
-        }
-        else {
-            otherObjects[2] = new Barrier(new QLabel,
-                                      QPoint(1, 1), QPoint(1, 1));
+            updateLeftAndRightObject(minStartX, maxEndX, killingObjects[j]);
+            ++j;
         }
     }
+    if (str == "/") {
+        std::getline(fd,str);
+    }
+    j = 0;
+    if (str == "JumpingObjects:") {
+        while(!(fd.eof())) {
+            std::getline(fd,str);
+            if (fd.eof()) {
+                break;
+            }
+            if (str == "KeyObjects:" || str == "/") {
+                break;
+            }
+            jumpingObjects.resize(jumpingObjects.size() + 1);
+            parse(JUMPING_OBJECT_LABEL, str, jumpingObjects[j], labelMaxIndex, window,
+                  startX, startY, endX, endY);
+            updateLeftAndRightObject(minStartX, maxEndX, jumpingObjects[j]);
+            ++j;
+        }
+    }
+    if (str == "/") {
+        std::getline(fd,str);
+    }
+    if (str == "KeyObjects:" || str == "KeyObjects:\n") {
+        std::getline(fd, str);
+//        parse("background-color: rgb(170, 100, 170);", str, otherObjects[2], i, window,
+//              startX, startY, endX, endY);
+        std::string elemIndex;
+        std::stringstream ss;
+        ss.str(str);
+        window->labels[labelMaxIndex]->setStyleSheet(KEY_OBJECT_LABEL);
+        ss.str(str);
+        std::getline(ss, startX, ' ');
+        std::getline(ss, startY, ' ');
+        std::getline(ss, endX, ' ');
+        std::getline(ss, endY, ' ');
+        otherObjects[2] = new Barrier(window->labels[labelMaxIndex],
+                             QPoint(std::stoi(startX), std::stoi(startY)),
+                                    QPoint(std::stoi(endX), std::stoi(endY)));
+        updateLeftAndRightObject(minStartX, maxEndX, otherObjects[2]);
+
+        //Доработать
+//        std::getline(ss, elemIndex, ' ');
+//        std::getline(ss, elemIndex, ' ');
+//        std::getline(ss, elemIndex, ' ');
+//        std::getline(ss, elemIndex, ' ');
+        std::getline(ss, elemIndex, ' ');
+        elementIndex = std::stoi(elemIndex) - 1;
+        deactivateObject();
+    }
+    else {
+        otherObjects[2] = new Barrier(new QLabel,
+                                  QPoint(1, 1), QPoint(1, 1));
+    }
+
+
+//    for (int i = labelMaxIndex; i < MAX_LABELS; ++i) {
+//        win
+//    }
     //barriers.resize(1);
 }
 
@@ -250,9 +276,49 @@ bool Level::isKey() {
     return false;
 }
 
+int Level::getLabelMaxIndex() {
+    return labelMaxIndex;
+}
 
 std::vector <Barrier> Level::getBarriers() {
     return barriers;
+}
+
+void printVectorToF(std::ofstream& fd, std::string name,
+                    std::vector<Barrier>* v1 = nullptr, std::vector<Barrier*>* v2 = nullptr) {
+    if (v1 == nullptr) {
+        if (v2->size() == 0) {
+            fd << "/" << std::endl;
+        }
+        fd << name << std::endl;
+        for (auto &i : *v2) {
+            fd << i->getStartPos().rx() << " " << i->getStartPos().ry() << " " <<
+                  i->getEndPos().rx() << " " << i->getEndPos().ry() << std::endl;
+        }
+    }
+    if (v2 == nullptr) {
+        if (v1->size() == 0) {
+            fd << "/" << std::endl;
+        }
+        fd << name << std::endl;
+        for (auto &i : *v1) {
+            fd << i.getStartPos().rx() << " " << i.getStartPos().ry() << " " <<
+                  i.getEndPos().rx() << " " << i.getEndPos().ry() << std::endl;
+        }
+    }
+}
+
+void printObjectToF(std::ofstream fd, Barrier* b1, Barrier** b2 = nullptr) {
+    if (b1 == nullptr) {
+        Barrier* b = *b2;
+        fd << b->getStartPos().rx() << " " << b->getStartPos().ry() << " " <<
+              b->getEndPos().rx() << " " << b->getEndPos().ry() << std::endl;
+    }
+    if (b2 == nullptr) {
+        Barrier b = *b1;
+        fd << b.getStartPos().rx() << " " << b.getStartPos().ry() << " " <<
+              b.getEndPos().rx() << " " << b.getEndPos().ry() << std::endl;
+    }
 }
 
 void Level::recordToFile(std::string path) {
@@ -261,14 +327,36 @@ void Level::recordToFile(std::string path) {
 //    if (!(fd.is_open())) {
 //        std::exit(0);
 //    }
-    fd << "Barriers:\n";
-    for (Barrier & i : barriers) {
-        fd << i.getStartPos().rx() << " " << i.getStartPos().ry() << " " <<
-              i.getEndPos().rx() << " " << i.getEndPos().ry() << std::endl;
+    if (text.size() != 0) {
+        for (auto &i : text) {
+            fd << i.getStartPos().rx() << " " << i.getStartPos().ry() << " " <<
+                  i.getEndPos().rx() << " " << i.getEndPos().ry() << i.text().toStdString() << std::endl;
+        }
     }
-    fd << "Finish:\n";
-    fd << otherObjects[0]->getStartPos().rx() << " " << otherObjects[0]->getStartPos().ry() << " " <<
-          otherObjects[0]->getEndPos().rx() << " " << otherObjects[0]->getEndPos().ry() << std::endl;
+    printVectorToF(fd, "Barriers:", &barriers);
+//    fd << "Barriers:\n";
+//    for (Barrier & i : barriers) {
+//        fd << i.getStartPos().rx() << " " << i.getStartPos().ry() << " " <<
+//              i.getEndPos().rx() << " " << i.getEndPos().ry() << std::endl;
+//    }
+    if (otherObjects[0] != nullptr) {
+        fd << "Finish:\n";
+        fd << otherObjects[0]->getStartPos().rx() << " " << otherObjects[0]->getStartPos().ry() << " " <<
+              otherObjects[0]->getEndPos().rx() << " " << otherObjects[0]->getEndPos().ry() << std::endl;
+    }
+    if (otherObjects[1] != nullptr) {
+        fd << "MovingObjects:\n";
+        fd << otherObjects[1]->getStartPos().rx() << " " << otherObjects[1]->getStartPos().ry() << " " <<
+              otherObjects[1]->getEndPos().rx() << " " << otherObjects[1]->getEndPos().ry() << std::endl;
+    }
+    printVectorToF(fd, "KillingObjects:", nullptr,  &killingObjects);
+    printVectorToF(fd, "JumpingObjects:", nullptr, &jumpingObjects);
+    if (otherObjects[2] != nullptr) {
+            fd << "KeyObjects:\n";
+            fd << otherObjects[2]->getStartPos().rx() << " " << otherObjects[2]->getStartPos().ry() << " " <<
+                  otherObjects[2]->getEndPos().rx() << " " << otherObjects[2]->getEndPos().ry() << " " << elementIndex <<  std::endl;
+    }
+
 }
 
 bool Level::isMovePossible() {
@@ -341,8 +429,10 @@ void Level::moveAllObjects(Move move) {
       for (auto &i : barriers) {
           i.move(move);
       }
+      leftObject->move(move);
+      rightObject->move(move);
 
-      character->move(move);
+//      character->move(move);
 //    for (auto &i : barriers) {
 //        i.move(move);
 //    }
@@ -388,4 +478,106 @@ void Level::increaseCheckpointNumber() {
 
 int Level::textCount() {
     return text.size();
+}
+
+void Level::setChangingObject(QPoint pos) {
+    int x = pos.rx();
+    int y = pos.ry();
+    for (Barrier& i: barriers) {
+        if (x > i.getStartPos().rx() && x < i.getEndPos().rx() &&
+            y > i.getStartPos().ry() && y < i.getEndPos().ry()) {
+//            i.deactivate();
+                changingObject = &i;
+                return;
+        }
+    }
+    for (Barrier*& i: otherObjects) {
+        if (x > i->getStartPos().rx() && x < i->getEndPos().rx() &&
+            y > i->getStartPos().ry() && y < i->getEndPos().ry()) {
+//            i.deactivate();
+                changingObject = i;
+                return;
+        }
+    }
+    for (Barrier*& i: killingObjects) {
+        if (x > i->getStartPos().rx() && x < i->getEndPos().rx() &&
+            y > i->getStartPos().ry() && y < i->getEndPos().ry()) {
+//            i.deactivate();
+                changingObject = i;
+                return;
+        }
+    }
+    for (Barrier*& i: jumpingObjects) {
+        if (x > i->getStartPos().rx() && x < i->getEndPos().rx() &&
+            y > i->getStartPos().ry() && y < i->getEndPos().ry()) {
+//            i.deactivate();
+                changingObject = i;
+                return;
+        }
+    }
+}
+
+void Level::moveChangingObject(QPoint pos) {
+    if (changingObject != nullptr) {
+        changingObject->move(pos);
+    }
+}
+
+void Level::resizeChangingObject(QPoint pos) {
+    changingObject->resize(pos);
+}
+
+//Barrier* Level::getNewBarrier() {
+//    Barrier b = Barrier(window->labels[labelMaxIndex], QPoint(500, 500), QPoint(600, 600));
+//    window->labels[labelMaxIndex]->setStyleSheet(BARRIER_LABEL);
+//    ++labelMaxIndex;
+//    barriers.push_back(b);
+//    return b;
+//}
+
+Barrier* Level::getNewObject(Object o) {
+    if (o == Object::FINISH) {
+        if (otherObjects[0] == nullptr) {
+            Barrier* b = new Barrier(window->labels[labelMaxIndex], QPoint(500, 500), QPoint(600, 600));
+            otherObjects[0] = b;
+            window->labels[labelMaxIndex]->setStyleSheet(buttonsLabels[static_cast<int>(o)]);
+            ++labelMaxIndex;
+            return b;
+        }
+        else {
+            otherObjects[0]->move(QPoint(500, 500));
+            return otherObjects[0];
+        }
+    }
+    else if (o == Object::MOVING_OBJECT) {
+        if (otherObjects[1] == nullptr) {
+            Barrier* b = new Barrier(window->labels[labelMaxIndex], QPoint(500, 500), QPoint(600, 600));
+            otherObjects[1] = b;
+            window->labels[labelMaxIndex]->setStyleSheet(buttonsLabels[static_cast<int>(o)]);
+            ++labelMaxIndex;
+            return b;
+        }
+        else {
+            otherObjects[1]->move(QPoint(500, 500));
+            return otherObjects[1];
+        }
+    }
+    Barrier *b = new Barrier(window->labels[labelMaxIndex], QPoint(500, 500), QPoint(600, 600));
+    window->labels[labelMaxIndex]->setStyleSheet(buttonsLabels[static_cast<int>(o)]);
+    if (o == Object::BARRIER)
+        barriers.push_back(*b);
+    if (o == Object::KILLING_OBJECT)
+        killingObjects.push_back(b);
+    if (o == Object::JUMPING_OBJECT)
+        jumpingObjects.push_back(b);
+    ++labelMaxIndex;
+    return b;
+}
+
+int Level::getRightPosX() {
+    return rightObject->getEndPos().rx();
+}
+
+int Level::getLeftPosX() {
+    return leftObject->getStartPos().rx();
 }

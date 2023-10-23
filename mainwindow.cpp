@@ -1,6 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "header.h"
+#define BUTTONS_COUNT 5
+QString buttonsLabels[] = {BARRIER_LABEL, FINISH_LABEL, MOVING_OBJECT_LABEL,
+                           KILLING_OBJECT_LABEL, JUMPING_OBJECT_LABEL};
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -21,10 +25,23 @@ MainWindow::MainWindow(QWidget *parent) :
 //    }
     resetLevel();
 
-    QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(move()));
-    connect(timer, SIGNAL(timeout()), this, SLOT(fall()));
-    timer->start(5);
+    QTimer *moveTimer = new QTimer(this);
+    connect(moveTimer, SIGNAL(timeout()), this, SLOT(move()));
+    QTimer *fallTimer = new QTimer(this);
+    connect(fallTimer, SIGNAL(timeout()), this, SLOT(fall()));
+    moveTimer->start(MOVE_TIMER);
+    fallTimer->start(FALL_TIMER);
+    QSignalMapper* signalMapper = new QSignalMapper(this) ;
+    for (int i = 0; i < BUTTONS_COUNT; ++i) {
+        buttons.push_back(new QPushButton(this));
+        buttons[i]->setVisible(false);
+        buttons[i]->move(100 + 150 * i, 0);
+        buttons[i]->resize(100, 50);
+        buttons[i]->setStyleSheet(buttonsLabels[i]);
+        connect(buttons[i], SIGNAL(clicked(bool)), signalMapper, SLOT(map()));
+        signalMapper->setMapping(buttons[i], i);
+    }
+    connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(buttonPressed(int))) ;
 //    ui->floor->resize(10000, 1000);
 //    ui->floor->move(ui->floor->pos() + QPoint(0, 200));
 //    std::vector <Barrier> barriers;
@@ -43,13 +60,43 @@ void MainWindow::move() {
     level->move();
 }
 
+void MainWindow::setButtonsVisible(bool par) {
+    for (auto &i : buttons) {
+        i->setVisible(par);
+    }
+}
+
 void MainWindow::keyPressEvent(QKeyEvent *event) {
     int key = event->key();
 //    std::cout << key << std::endl;
 //    std::cout << ui->character->pos().rx() << " " << ui->character->pos().ry() << " " << character->getStartPos().rx() << " " << character->getStartPos().ry() << std::endl;
     if (key == Qt::Key_Escape) {
-        std::cout << ui->character->pos().rx() << " " << ui->character->pos().ry() << std::endl;
+ //       std::cout << ui->character->pos().rx() << " " << ui->character->pos().ry() << std::endl;
         std::exit(0);
+    }
+
+    if (key == Qt::Key_E) {
+        if (isEdit) {
+            setButtonsVisible(false);
+            isEdit = false;
+        }
+        else {
+            setButtonsVisible(true);
+            isEdit = true;
+        }
+    }
+
+    if (key == Qt::Key_Y) {
+        if (isResizeMode) {
+            isResizeMode = false;
+        }
+        else {
+            isResizeMode = true;
+        }
+    }
+
+    if (key == Qt::Key_P) {
+        level->recordToFile("Test" + std::to_string(levelNumber) + ".txt");
     }
 
     if (key == Qt::Key_R) {
@@ -102,6 +149,21 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event) {
 //    }
 }
 
+void MainWindow::mousePressEvent(QMouseEvent *e) {
+    if (isEdit) {
+       level->setChangingObject(e->pos());
+    }
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent *e) {
+    if (isEdit) {
+        if (isResizeMode)
+            level->resizeChangingObject(e->pos());
+        else
+            level->moveChangingObject(e->pos());
+    }
+}
+
 
 void MainWindow::setPicture(std::string path, QLabel* pic) {
     QPixmap pix;
@@ -136,13 +198,13 @@ void MainWindow::resetLevel() {
             labels[i]->setVisible(true);
         }
     }
-    if (levelNumber == 5) {
+    if (levelNumber == FINAL_LEVEL) {
         std::exit(0);
     }
+    level = new Level("Test" + std::to_string(levelNumber) + ".txt", this);
     Character* character = new Character(":/new/prefix1/pictures/character.png",
                               ":/new/prefix1/pictures/character(mirrored).png",  ui->character,
-                              charCheckPointPos.first, charCheckPointPos.second);
-    level = new Level("Test" + std::to_string(levelNumber) + ".txt", this, character);
+                              charCheckPointPos.first, charCheckPointPos.second, level);
     if (level->isTextLevel) {
         ui->character->setVisible(false);
     }
@@ -176,6 +238,10 @@ void MainWindow::nextLevel() {
 
 void MainWindow::increaseCheckpointNumber() {
     checkpointNumber++;
+}
+
+void MainWindow::buttonPressed(int o) {
+    level->getNewObject(static_cast<Object>(o));
 }
 
 MainWindow::~MainWindow()

@@ -15,6 +15,9 @@
 #include "barrier.h"
 #include "level.h"
 #include <QVector>
+#include <QPushButton>
+#include <memory>
+#include <QSignalMapper>
 
 namespace Ui {
 class MainWindow;
@@ -23,6 +26,7 @@ class MainWindow;
 class Character;
 class Barrier;
 class Level;
+enum class Object;
 
 class MainWindow : public QMainWindow
 {
@@ -38,23 +42,30 @@ public:
     QLabel* getNewVector(std::string style);
     QVector <QLabel*> getLabels();
     QVector <QLabel*> labels;
+    void setButtonsVisible(bool par);
 
     void nextLevel();
 
 private slots:
     void fall();
     void move();
+    void buttonPressed(int o);
 
 private:
     Ui::MainWindow *ui;
-    int levelNumber = 0;
+    int levelNumber = FIRST_LEVEL;
     //Character* character;
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void keyReleaseEvent(QKeyEvent *event);
+    virtual void mousePressEvent(QMouseEvent *e);
+    virtual void mouseMoveEvent(QMouseEvent *e);
+    QVector<QPushButton*> buttons; // barrier, finish, move, kill, jump
     //std::vector <Barrier> barriers;
     Level* level;
     std::pair <QPoint, QPoint> charCheckPointPos = {QPoint(10,600), QPoint(100, 710)}; // startPos, endPos
     size_t checkpointNumber = 0;
+    bool isEdit = false;
+    bool isResizeMode = false;
 };
 
 #endif // MAINWINDOW_H

@@ -15,7 +15,8 @@ class Level;
 class Character : public GameObject
 {
 public:
-    Character(std::string _url, std::string url_2, QLabel* _label, QPoint _startPos, QPoint _endPos);
+    Character(std::string _url, std::string url_2, QLabel* _label, QPoint _startPos, QPoint _endPos,
+              Level* level = nullptr);
     void move();
     void move(Move move);
     void resetMove(Move move);

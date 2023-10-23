@@ -89,7 +89,8 @@ void Barrier::move(Move move) {
     if (move == Move::LEFT) {
         startPos = QPoint(startPos.rx() - HORIZONTAL_MOVEMENT, startPos.ry());
         endPos = QPoint(endPos.rx() - HORIZONTAL_MOVEMENT, endPos.ry());
-        label->move(label->pos() + QPoint(-HORIZONTAL_MOVEMENT, SCREEN_BOARD_START_Y));
+//        label->move(label->pos() + QPoint(-HORIZONTAL_MOVEMENT, SCREEN_BOARD_START_Y));
+        label->move(startPos.rx(), startPos.ry());
     }
     if (move == Move::DOWN) {
         startPos = QPoint(startPos.rx(), startPos.ry() + DOWN_MOVEMENT);
@@ -103,6 +104,23 @@ void Barrier::move(Move move) {
         endPos = QPoint(endPos.rx(), endPos.ry() - UP_MOVEMENT);
         label->move(label->pos() + QPoint(SCREEN_BOARD_START_X, -UP_MOVEMENT));
     }
+}
+
+void Barrier::move(QPoint pos) {
+    label->move(pos);
+    startPos = pos;
+    endPos = QPoint(pos.rx() + label->size().rwidth(), pos.ry() + label->size().rheight());
+}
+
+void Barrier::resize(QPoint pos) {
+    int x = pos.rx() - startPos.rx();
+    int y = pos.ry() - startPos.ry();
+    if (x < 1 || y < 1) {
+        return;
+    }
+    label->resize(x, y);
+    endPos = pos;
+
 }
 
 bool Barrier::isVisible() {
@@ -120,6 +138,10 @@ void Barrier::activate() {
         endPos.rx() += PARAM_TO_OUT_OF_BOARD;
         label->setVisible(true);
     }
+}
+
+QString Barrier::text() {
+    return label->text();
 }
 
 void Barrier::deactivate() {

@@ -17,6 +17,9 @@ public:
     bool isMovePosible(QPoint _startPos, QPoint _endPos);
     bool isCrossed(QPoint _startPos, QPoint _endPos);
     void move(Move move);
+    void move(QPoint pos);
+    void resize(QPoint pos);
+    QString text();
     bool isVisible();
     void activate();
     void deactivate();
