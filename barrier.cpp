@@ -9,6 +9,14 @@ Barrier::Barrier(QLabel* _label, QPoint _startPos, QPoint _endPos)
     label->resize(abs(endPos.rx() - startPos.rx()), abs(endPos.ry() - startPos.ry()));
 }
 
+bool Barrier::operator ==(Barrier b2) {
+    if (label == b2.label && startPos == b2.startPos
+        && endPos == b2.endPos) {
+        return true;
+    }
+    return false;
+}
+
 bool Barrier::isMovePosible(QPoint _startPos, QPoint _endPos) {
         if (_endPos.rx() <= startPos.rx()) {
             if (_endPos.rx() + HORIZONTAL_MOVEMENT >= startPos.rx()) {
@@ -81,6 +89,9 @@ bool Barrier::isCrossed(QPoint _startPos, QPoint _endPos) {
 }
 
 void Barrier::move(Move move) {
+    if (this == nullptr) {
+        return;
+    }
     if (move == Move::RIGHT) {
         startPos = QPoint(startPos.rx() + HORIZONTAL_MOVEMENT, startPos.ry());
         endPos = QPoint(endPos.rx() + HORIZONTAL_MOVEMENT, endPos.ry());
@@ -125,7 +136,7 @@ void Barrier::resize(QPoint pos) {
 
 bool Barrier::isVisible() {
     if (startPos.rx() > SCREEN_BOARD_START_X && endPos.rx() < SCREEN_BOARD_END_X &&
-        startPos.ry() > SCREEN_BOARD_START_Y && endPos.ry() < SCREEN_BOARD_END_Y)
+        startPos.ry() > SCREEN_BOARD_START_Y && endPos.ry() < 1080)
     {
         return true;
     }

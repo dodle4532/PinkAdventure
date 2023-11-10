@@ -40,7 +40,7 @@ public:
 
     void recordToFile(std::string path);
 
-    bool isMovePossible();
+    bool isMovePossible(Move move);
 
     void setPicture(std::string path, QLabel* pic);
     void setCharacter(Character* _character);
@@ -67,9 +67,11 @@ public:
     void keyDisappear();
 
     void setNewCheckpoint();
+    bool isCheckpoint();
     void increaseCheckpointNumber();
 
     bool isTextLevel = false;
+    bool isMoveCameraNeeded;
 
     int textCount();
 
@@ -107,6 +109,7 @@ private:
     Barrier* rightObject;
 
     int elementIndex = -1;
+    Barrier* keyConnectedObject;
     int labelMaxIndex = 0;
 
 //private slots:

@@ -26,12 +26,18 @@ public:
     int getJumpCount();
     void increaseJumpCount();
     void setLevel(Level* level);
+    void changeMovePic();
+    void changeJumpPic(int index = -1);
+    void setMirrored(bool par);
 
 private:
     std::string url;
     std::string urlMirror;
     std::set <Move> moves;
     Level* level;
+    int picIndex = 0;
+
+    int changePicIndex = 0;
 
     int jumpCount;
     bool isMirrored;

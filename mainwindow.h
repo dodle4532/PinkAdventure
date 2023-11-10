@@ -35,7 +35,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    void setPicture(std::string path, QLabel* pic);
+    static void setPicture(std::string path, QLabel* pic);
     void resetLevel();
     void setNewCheckpoint(QPoint startPos, QPoint endPos);
     void increaseCheckpointNumber();
@@ -62,7 +62,8 @@ private:
     QVector<QPushButton*> buttons; // barrier, finish, move, kill, jump
     //std::vector <Barrier> barriers;
     Level* level;
-    std::pair <QPoint, QPoint> charCheckPointPos = {QPoint(10,600), QPoint(100, 710)}; // startPos, endPos
+    std::pair <QPoint, QPoint> charCheckPointPos = {QPoint(CHAR_START_X,CHAR_START_Y),
+                                                    QPoint(CHAR_START_X + CHAR_SIZE_X,CHAR_START_Y + CHAR_SIZE_Y)}; // startPos, endPos
     size_t checkpointNumber = 0;
     bool isEdit = false;
     bool isResizeMode = false;

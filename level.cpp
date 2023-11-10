@@ -3,7 +3,6 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#define OTHER_OBJECTS_COUNT 2
 extern QString buttonsLabels[];
 
 Level::Level(Character* _character, std::vector <Barrier> _barriers, MainWindow* _window) :
@@ -52,9 +51,7 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
 {
     int minStartX = SCREEN_BOARD_END_X;
     int maxEndX = SCREEN_BOARD_START_X;
-    for (int i = 0; i < OTHER_OBJECTS_COUNT; ++i) {
-        otherObjects.push_back(nullptr);
-    }
+    otherObjects.resize(OTHER_OBJECTS_COUNT, nullptr);
     changingObject = nullptr;
     if (character != nullptr) {
         character->setLevel(this);
@@ -135,15 +132,15 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
     std::getline(fd, str);
     if (str == "MovingObjects:" || str == "MovingObjects:\n") {
         std::getline(fd, str);
-//            parse(MOVING_OBJECT_LABEL, str, otherObjects[1], labelMaxIndex, window,
-//                  startX, startY, endX, endY);
-        otherObjects[1] = new Barrier(new QLabel,
-                                  QPoint(1, 1), QPoint(1, 1));
+            parse(MOVING_OBJECT_LABEL, str, otherObjects[1], labelMaxIndex, window,
+                  startX, startY, endX, endY);
+//        otherObjects[1] = new Barrier(new QLabel,
+//                                  QPoint(1, 1), QPoint(1, 1));
     }
-    else {
-        otherObjects[1] = new Barrier(new QLabel,
-                                  QPoint(1, 1), QPoint(1, 1));
-    }
+//    else {
+//        otherObjects[1] = new Barrier(new QLabel,
+//                                  QPoint(1, 1), QPoint(1, 1));
+//    }
 
     //KillingObjects
     int j = 0;
@@ -211,19 +208,16 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
 //        std::getline(ss, elemIndex, ' ');
 //        std::getline(ss, elemIndex, ' ');
         std::getline(ss, elemIndex, ' ');
-        elementIndex = std::stoi(elemIndex) - 1;
+        keyConnectedObject = &barriers[std::stoi(elemIndex) - 1];
         deactivateObject();
     }
     else {
-        otherObjects[2] = new Barrier(new QLabel,
-                                  QPoint(1, 1), QPoint(1, 1));
+        otherObjects[2] = nullptr;
+        keyConnectedObject = nullptr;
     }
 
+    isMoveCameraNeeded = isMovingCameraNeed();
 
-//    for (int i = labelMaxIndex; i < MAX_LABELS; ++i) {
-//        win
-//    }
-    //barriers.resize(1);
 }
 
 void Level::fall() {
@@ -244,11 +238,11 @@ void Level::resetMove(Move move) {
 }
 
 QPoint Level::getCharStartPos() {
-    return character->getStartPos();
+    return character->getStartPos() + QPoint(HITBOX_CORRECTION_X, 0); // Поправка под хитбоксы
 }
 
 QPoint Level::getCharEndPos() {
-    return character->getEndPos();
+    return character->getEndPos() - QPoint(HITBOX_CORRECTION_X, 0); // Поправка под хитбоксы
 }
 
 bool Level::isDead() {
@@ -270,6 +264,9 @@ bool Level::isJumpReset() {
 }
 
 bool Level::isKey() {
+    if (otherObjects[2] == nullptr) {
+        return false;
+    }
     if (otherObjects[2]->isCrossed(this->getCharStartPos(), this->getCharEndPos())) {
         return true;
     }
@@ -359,17 +356,64 @@ void Level::recordToFile(std::string path) {
 
 }
 
-bool Level::isMovePossible() {
-    if (this->getCharStartPos().rx() < 1 || this->getCharEndPos().rx() > 1920 ||
-        this->getCharStartPos().ry() < 1  || this->getCharEndPos().ry() > 900) {
-        return false;
-    }
-    for (auto & i : barriers) {
-        if (i.isCrossed(this->getCharStartPos(), this->getCharEndPos())) {
+bool Level::isMovePossible(Move move) {
+    if (move == Move::RIGHT) {
+        if (getCharEndPos().rx() > SCREEN_BOARD_END_X) {
             return false;
         }
+        QPoint startPos = QPoint(getCharStartPos().rx() + HORIZONTAL_MOVEMENT, getCharStartPos().ry());
+        QPoint endPos = QPoint(getCharEndPos().rx() + HORIZONTAL_MOVEMENT, getCharEndPos().ry());
+        for (auto & i : barriers) {
+            if (i.isCrossed(startPos, endPos)) {
+                return false;
+            }
+        }
+        return true;
+
     }
-    return true;
+    if (move == Move::LEFT) {
+        if (getCharStartPos().rx() < SCREEN_BOARD_START_X) {
+            return false;
+        }
+        QPoint startPos = QPoint(getCharStartPos().rx() - HORIZONTAL_MOVEMENT, getCharStartPos().ry());
+        QPoint endPos = QPoint(getCharEndPos().rx() - HORIZONTAL_MOVEMENT, getCharEndPos().ry());
+        for (auto & i : barriers) {
+            if (i.isCrossed(startPos, endPos)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    if (move == Move::DOWN) {
+        if (getCharEndPos().ry() > SCREEN_BOARD_END_Y) {
+            return false;
+        }
+        QPoint startPos = QPoint(getCharStartPos().rx(), getCharStartPos().ry() + DOWN_MOVEMENT);
+        QPoint endPos = QPoint(getCharEndPos().rx(), getCharEndPos().ry() + DOWN_MOVEMENT);
+        for (auto & i : barriers) {
+            if (i.isCrossed(startPos, endPos)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    if (move == Move::UP) {
+        if (getCharStartPos().ry() < SCREEN_BOARD_START_Y) {
+            return false;
+        }
+        if (character->getJumpCount() > MAX_JUMP_COUNT) {
+            return false;
+        }
+        QPoint startPos = QPoint(getCharStartPos().rx(), getCharStartPos().ry() - UP_MOVEMENT);
+        QPoint endPos = QPoint(getCharEndPos().rx(), getCharEndPos().ry() - UP_MOVEMENT);
+        for (auto & i : barriers) {
+            if (i.isCrossed(startPos, endPos)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
 }
 
 void Level::setPicture(std::string path, QLabel *pic) {
@@ -381,6 +425,9 @@ void Level::setCharacter(Character *_character) {
 }
 
 bool Level::isFinish() {
+    if (otherObjects[0] == nullptr) {
+        return false;
+    }
     if (otherObjects[0]->isCrossed(character->getStartPos(), character->getEndPos())) {
         return true;
     }
@@ -388,8 +435,33 @@ bool Level::isFinish() {
 }
 
 bool Level::isMovingCameraNeed() {
-    if (otherObjects[1]->isCrossed(character->getStartPos(), character->getEndPos())) {
-        return true;
+    for (Barrier i : barriers) {
+        if (keyConnectedObject != nullptr) {
+            if (i == *keyConnectedObject) {
+                continue;
+            }
+        }
+        if (!i.isVisible()) {
+            return true;
+        }
+    }
+    for (Barrier* i : jumpingObjects) {
+        if (!i->isVisible()) {
+            return true;
+        }
+    }
+    for (Barrier* i : killingObjects) {
+        if (!i->isVisible()) {
+            return true;
+        }
+    }
+    for (Barrier* i : otherObjects) {
+        if (i == nullptr) {
+            continue;
+        }
+        if (!i->isVisible()) {
+            return true;
+        }
     }
     return false;
 }
@@ -429,8 +501,8 @@ void Level::moveAllObjects(Move move) {
       for (auto &i : barriers) {
           i.move(move);
       }
-      leftObject->move(move);
-      rightObject->move(move);
+      //leftObject->move(move);
+      //rightObject->move(move);
 
 //      character->move(move);
 //    for (auto &i : barriers) {
@@ -445,31 +517,30 @@ void Level::nextLevel() {
 }
 
 void Level::deactivateObject() {
-    if (elementIndex < 0) {
-        return;
-    }
-    unsigned i = elementIndex;
-    if(i < barriers.size()) {
-        barriers[i].deactivate();
-    }
+    keyConnectedObject->deactivate();
 }
 
 void Level::activateObject() {
-    if (elementIndex < 0) {
-        return;
-    }
-    unsigned i = elementIndex;
-    if(i < barriers.size()) {
-        barriers[i].activate();
-    }
+    keyConnectedObject->activate();
 }
 
 void Level::keyDisappear() {
     otherObjects[2]->deactivate();
 }
 
+bool Level::isCheckpoint() {
+    if (otherObjects[1] == nullptr) {
+        return false;
+    }
+    if (otherObjects[1]->isCrossed(character->getStartPos(), character->getEndPos())) {
+        return true;
+    }
+    return false;
+}
+
 void Level::setNewCheckpoint() {
-    window->setNewCheckpoint(character->getStartPos(), character->getEndPos());
+    window->setNewCheckpoint(QPoint(CHAR_START_X, character->getStartPos().ry()),
+                             QPoint(CHAR_START_X + CHAR_SIZE_X, character->getEndPos().ry()));
 }
 
 void Level::increaseCheckpointNumber() {
@@ -524,7 +595,9 @@ void Level::moveChangingObject(QPoint pos) {
 }
 
 void Level::resizeChangingObject(QPoint pos) {
-    changingObject->resize(pos);
+    if (changingObject != nullptr) {
+        changingObject->resize(pos);
+    }
 }
 
 //Barrier* Level::getNewBarrier() {

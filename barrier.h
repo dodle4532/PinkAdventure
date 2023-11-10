@@ -14,6 +14,7 @@ class Barrier : public GameObject
 public:
     Barrier() = default;
     Barrier(QLabel* _label, QPoint _startPos, QPoint _endPos);
+    bool operator ==(Barrier b2);
     bool isMovePosible(QPoint _startPos, QPoint _endPos);
     bool isCrossed(QPoint _startPos, QPoint _endPos);
     void move(Move move);

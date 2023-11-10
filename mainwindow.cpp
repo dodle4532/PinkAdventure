@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
                         " border-image: url(:/new/prefix1/pictures/background.jpg) 0 0 0 0 stretch stretch;"
                         "}");
 
-    labels.resize(MAX_LABELS);
+//    labels.resize(MAX_LABELS);
 //    for (auto & i : labels) {
 //        i = new QLabel(this);
 //    }
@@ -171,6 +171,7 @@ void MainWindow::setPicture(std::string path, QLabel* pic) {
     int w = pic->width();
     int h = pic->height();
     pic->setPixmap(pix.scaled(w, h, Qt::KeepAspectRatio));
+    pic->setScaledContents(true);
     return;
 }
 
@@ -188,7 +189,7 @@ void MainWindow::resetLevel() {
             }
         }
     }
-    labels.clear();
+//    labels.clear();
     labels.resize(MAX_LABELS);
     for (auto & i : labels) {
         i = new QLabel(this);
@@ -202,8 +203,11 @@ void MainWindow::resetLevel() {
         std::exit(0);
     }
     level = new Level("Test" + std::to_string(levelNumber) + ".txt", this);
-    Character* character = new Character(":/new/prefix1/pictures/character.png",
-                              ":/new/prefix1/pictures/character(mirrored).png",  ui->character,
+//    Character* character = new Character(":/new/prefix1/pictures/character.png",
+//                              ":/new/prefix1/pictures/character(mirrored).png",  ui->character,
+//                              charCheckPointPos.first, charCheckPointPos.second, level);
+    Character* character = new Character(":/new/prefix1/pictures/Pink_Monster.png",
+                              ":/new/prefix1/pictures/m_Pink_Monster.png",  ui->character,
                               charCheckPointPos.first, charCheckPointPos.second, level);
     if (level->isTextLevel) {
         ui->character->setVisible(false);
