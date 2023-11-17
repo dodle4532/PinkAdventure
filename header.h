@@ -22,7 +22,7 @@
 #define FALL_TIMER 3
 #define MAX_LABELS 100
 #define FINAL_LEVEL 7
-#define FIRST_LEVEL 6
+#define FIRST_LEVEL 5
 #define OTHER_OBJECTS_COUNT 3
 #define BARRIER_LABEL "background-color: rgb(0, 170, 0);"
 #define FINISH_LABEL "background-color: rgb(170, 0, 0);"

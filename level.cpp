@@ -286,6 +286,7 @@ void printVectorToF(std::ofstream& fd, std::string name,
     if (v1 == nullptr) {
         if (v2->size() == 0) {
             fd << "/" << std::endl;
+            return;
         }
         fd << name << std::endl;
         for (auto &i : *v2) {
@@ -296,6 +297,7 @@ void printVectorToF(std::ofstream& fd, std::string name,
     if (v2 == nullptr) {
         if (v1->size() == 0) {
             fd << "/" << std::endl;
+            return;
         }
         fd << name << std::endl;
         for (auto &i : *v1) {
@@ -563,6 +565,9 @@ void Level::setChangingObject(QPoint pos) {
         }
     }
     for (Barrier*& i: otherObjects) {
+        if (i == nullptr) {
+            continue;
+        }
         if (x > i->getStartPos().rx() && x < i->getEndPos().rx() &&
             y > i->getStartPos().ry() && y < i->getEndPos().ry()) {
 //            i.deactivate();

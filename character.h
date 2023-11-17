@@ -41,6 +41,7 @@ private:
 
     int jumpCount;
     bool isMirrored;
+    bool isChange;
 };
 
 #endif // CHARACTER_H

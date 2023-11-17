@@ -2,9 +2,12 @@
 #include "mainwindow.h"
 #include <QPicture>
 
-std::string charMovementPic[] = {":/new/prefix1/pictures/Pink_Monster.png", ":/new/prefix1/pictures/Pink_Monster_Run_1.png",
-                            ":/new/prefix1/pictures/Pink_Monster_Run_2.png", ":/new/prefix1/pictures/Pink_Monster_Run_3.png",
-                            ":/new/prefix1/pictures/Pink_Monster_Run_4.png", ":/new/prefix1/pictures/Pink_Monster_Run_5.png",
+std::string charMovementPic[] = {":/new/prefix1/pictures/Pink_Monster.png",
+                                 ":/new/prefix1/pictures/Pink_Monster_Run_1.png",
+                            ":/new/prefix1/pictures/Pink_Monster_Run_2.png",
+                                 ":/new/prefix1/pictures/Pink_Monster_Run_3.png",
+                            ":/new/prefix1/pictures/Pink_Monster_Run_4.png",
+                                 ":/new/prefix1/pictures/Pink_Monster_Run_5.png",
                             ":/new/prefix1/pictures/Pink_Monster_Run_6.png"};
 std::string charMovementPicReversed[] = {":/new/prefix1/pictures/m_Pink_Monster.png", ":/new/prefix1/pictures/m_Pink_Monster_Run_1.png",
                             ":/new/prefix1/pictures/m_Pink_Monster_Run_2.png", ":/new/prefix1/pictures/m_Pink_Monster_Run_3.png",
