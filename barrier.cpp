@@ -5,8 +5,10 @@ Barrier::Barrier(QLabel* _label, QPoint _startPos, QPoint _endPos)
     label = _label;
     startPos = _startPos;
     endPos = _endPos;
-    label->move(startPos);
-    label->resize(abs(endPos.rx() - startPos.rx()), abs(endPos.ry() - startPos.ry()));
+    if (label != nullptr) {
+        label->move(startPos);
+        label->resize(abs(endPos.rx() - startPos.rx()), abs(endPos.ry() - startPos.ry()));
+    }
 }
 
 bool Barrier::operator ==(Barrier b2) {

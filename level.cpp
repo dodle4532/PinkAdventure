@@ -5,7 +5,7 @@
 #include <iostream>
 extern QString buttonsLabels[];
 
-Level::Level(Character* _character, std::vector <Barrier> _barriers, MainWindow* _window) :
+Level::Level(Character* _character, std::vector <Barrier*> _barriers, MainWindow* _window) :
     character(_character), barriers(_barriers), window(_window)
 {
 //    QTimer *timer = new QTimer(this);
@@ -28,34 +28,58 @@ void parse(std::string style, std::string& str, Barrier*& barrier, int& i, MainW
     std::getline(ss, style, '"');
     std::getline(ss, style, '"');
     if (style != "") {
-        //window->labels[i]->setStyleSheet(QString::fromStdString(style));
+        window->labels[i]->setStyleSheet(QString::fromStdString(style));
     }
     ++i;
 }
 
-void Level::updateLeftAndRightObject(int& min, int& max, Barrier* barrier) {
-    int start = barrier->getStartPos().rx();
-    int end = barrier->getEndPos().rx();
+void Level::setLeftAndRight(Barrier* i, int& min, int& max) {
+    if (i == nullptr) {
+        return;
+    }
+    int start = i->getStartPos().rx();
+    int end = i->getEndPos().rx();
     if (end > max) {
-        rightObject = barrier;
+        rightObject = i;
         max = end;
     }
     if (start < min) {
-        leftObject = barrier;
+        leftObject = i;
         min = start;
     }
 }
 
-Level::Level(std::string path, MainWindow* _window, Character* _character) :
-    character(_character), window(_window)
+void Level::updateLeftAndRightObject() {
+    int max = 0; int min = 9999999;
+    for (auto & i : barriers) {
+        setLeftAndRight(i, min, max);
+    }
+    for (auto & i : otherObjects) {
+        setLeftAndRight(i, min, max);
+    }
+    for (auto & i : killingObjects) {
+        setLeftAndRight(i, min, max);
+    }
+    for (auto & i : jumpingObjects) {
+        setLeftAndRight(i, min, max);
+    }
+}
+
+Level::Level(std::string path, MainWindow* _window, std::vector<QLabel*> background) :
+     window(_window), background(background)
 {
-    int minStartX = SCREEN_BOARD_END_X;
-    int maxEndX = SCREEN_BOARD_START_X;
+    labelMaxIndex = 0;
+    QLabel* label = window->labels[99];
+    label->setStyleSheet("background-color: 'transparent';");
+    labelMaxIndex++;
+    std::pair<QPoint, QPoint> charCheckPointPos = window->getCheckpoint();
+    character = new Character(":/new/prefix1/pictures/Pink_Monster.png",
+                              ":/new/prefix1/pictures/m_Pink_Monster.png",  label,
+                              charCheckPointPos.first, charCheckPointPos.second, this);
+//    int minStartX = SCREEN_BOARD_END_X;
+//    int maxEndX = SCREEN_BOARD_START_X;
     otherObjects.resize(OTHER_OBJECTS_COUNT, nullptr);
     changingObject = nullptr;
-    if (character != nullptr) {
-        character->setLevel(this);
-    }
     std::ifstream fd;
     std::string str;
     //std::stringstream ss;
@@ -63,7 +87,6 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
     std::string startY;
     std::string endX;
     std::string endY;
-    labelMaxIndex = 0;
     fd.open(path);
     if (!(fd.is_open())) {
         std::exit(0);
@@ -96,8 +119,7 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
             Barrier* barrier = new Barrier(window->labels[labelMaxIndex],
                                  QPoint(std::stoi(startX), std::stoi(startY)),
                                  QPoint(std::stoi(endX), std::stoi(endY)));
-            updateLeftAndRightObject(minStartX, maxEndX, barrier);
-            text.push_back(*barrier);
+            text.push_back(barrier);
             ++labelMaxIndex;
             if (str == "") {
                 break;
@@ -117,8 +139,7 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
             Barrier* barrier;
             parse(BARRIER_LABEL, str, barrier, labelMaxIndex, window,
                   startX, startY, endX, endY);
-            updateLeftAndRightObject(minStartX, maxEndX, barrier);
-            barriers.push_back(*barrier);
+            barriers.push_back(barrier);
         }
     }
 
@@ -126,7 +147,6 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
     std::getline(fd, str);
     parse("background-color: rgb(170, 0, 0);", str, otherObjects[0], labelMaxIndex, window,
           startX, startY, endX, endY);
-    updateLeftAndRightObject(minStartX, maxEndX, otherObjects[0]);
 
     // MovingObject
     std::getline(fd, str);
@@ -157,7 +177,6 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
             killingObjects.resize(killingObjects.size() + 1);
             parse(KILLING_OBJECT_LABEL, str, killingObjects[j], labelMaxIndex, window,
                   startX, startY, endX, endY);
-            updateLeftAndRightObject(minStartX, maxEndX, killingObjects[j]);
             ++j;
         }
     }
@@ -177,7 +196,6 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
             jumpingObjects.resize(jumpingObjects.size() + 1);
             parse(JUMPING_OBJECT_LABEL, str, jumpingObjects[j], labelMaxIndex, window,
                   startX, startY, endX, endY);
-            updateLeftAndRightObject(minStartX, maxEndX, jumpingObjects[j]);
             ++j;
         }
     }
@@ -200,7 +218,6 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
         otherObjects[2] = new Barrier(window->labels[labelMaxIndex],
                              QPoint(std::stoi(startX), std::stoi(startY)),
                                     QPoint(std::stoi(endX), std::stoi(endY)));
-        updateLeftAndRightObject(minStartX, maxEndX, otherObjects[2]);
 
         //Доработать
 //        std::getline(ss, elemIndex, ' ');
@@ -208,25 +225,36 @@ Level::Level(std::string path, MainWindow* _window, Character* _character) :
 //        std::getline(ss, elemIndex, ' ');
 //        std::getline(ss, elemIndex, ' ');
         std::getline(ss, elemIndex, ' ');
-        keyConnectedObject = &barriers[std::stoi(elemIndex) - 1];
+        keyConnectedObject = barriers[std::stoi(elemIndex) - 1];
         deactivateObject();
+        std::string style;
+        std::getline(ss, style, '"');
+        std::getline(ss, style, '"');
+        if (style != "") {
+            window->labels[labelMaxIndex]->setStyleSheet(QString::fromStdString(style));
+        }
     }
     else {
         otherObjects[2] = nullptr;
         keyConnectedObject = nullptr;
     }
-
+    labelMaxIndex++;
+    updateLeftAndRightObject();
     isMoveCameraNeeded = isMovingCameraNeed();
+    for (auto & i : background) {
+        i->setVisible(true);
+    }
 
 }
 
 void Level::fall() {
-    character->fall();
+    if (character != nullptr)
+        character->fall();
 }
 
 void Level::move() {
-    character->move();
-    //moveAllObjects(Move::RIGHT);
+    if (character != nullptr)
+        character->move();
 }
 
 void Level::setMove(Move move) {
@@ -277,47 +305,25 @@ int Level::getLabelMaxIndex() {
     return labelMaxIndex;
 }
 
-std::vector <Barrier> Level::getBarriers() {
+std::vector <Barrier*> Level::getBarriers() {
     return barriers;
 }
 
-void printVectorToF(std::ofstream& fd, std::string name,
-                    std::vector<Barrier>* v1 = nullptr, std::vector<Barrier*>* v2 = nullptr) {
-    if (v1 == nullptr) {
-        if (v2->size() == 0) {
-            fd << "/" << std::endl;
-            return;
-        }
-        fd << name << std::endl;
-        for (auto &i : *v2) {
-            fd << i->getStartPos().rx() << " " << i->getStartPos().ry() << " " <<
-                  i->getEndPos().rx() << " " << i->getEndPos().ry() << std::endl;
-        }
+void Level::printVectorToF(std::ofstream& fd, std::string name, std::vector<Barrier*> v2) {
+    if (v2.size() == 0) {
+        fd << "/" << std::endl;
+        return;
     }
-    if (v2 == nullptr) {
-        if (v1->size() == 0) {
-            fd << "/" << std::endl;
-            return;
-        }
-        fd << name << std::endl;
-        for (auto &i : *v1) {
-            fd << i.getStartPos().rx() << " " << i.getStartPos().ry() << " " <<
-                  i.getEndPos().rx() << " " << i.getEndPos().ry() << std::endl;
-        }
+    fd << name << std::endl;
+    for (auto &i : v2) {
+        fd << i->getStartPos().rx() + levelShift << " " << i->getStartPos().ry() << " " <<
+              i->getEndPos().rx() + levelShift << " " << i->getEndPos().ry() << std::endl;
     }
 }
 
-void printObjectToF(std::ofstream fd, Barrier* b1, Barrier** b2 = nullptr) {
-    if (b1 == nullptr) {
-        Barrier* b = *b2;
-        fd << b->getStartPos().rx() << " " << b->getStartPos().ry() << " " <<
-              b->getEndPos().rx() << " " << b->getEndPos().ry() << std::endl;
-    }
-    if (b2 == nullptr) {
-        Barrier b = *b1;
-        fd << b.getStartPos().rx() << " " << b.getStartPos().ry() << " " <<
-              b.getEndPos().rx() << " " << b.getEndPos().ry() << std::endl;
-    }
+void Level::printObjectToF(std::ofstream& fd, Barrier* b) {
+    fd << b->getStartPos().rx() + levelShift << " " << b->getStartPos().ry() << " " <<
+          b->getEndPos().rx() + levelShift << " " << b->getEndPos().ry() << std::endl;
 }
 
 void Level::recordToFile(std::string path) {
@@ -326,13 +332,15 @@ void Level::recordToFile(std::string path) {
 //    if (!(fd.is_open())) {
 //        std::exit(0);
 //    }
+    fd << "Text:\n";
     if (text.size() != 0) {
         for (auto &i : text) {
-            fd << i.getStartPos().rx() << " " << i.getStartPos().ry() << " " <<
-                  i.getEndPos().rx() << " " << i.getEndPos().ry() << i.text().toStdString() << std::endl;
+            fd << i->getStartPos().rx() + levelShift << " " << i->getStartPos().ry() << " " <<
+                  i->getEndPos().rx() + levelShift << " " << i->getEndPos().ry() <<  "'" <<
+                  i->text().toStdString() << "'" << std::endl;
         }
     }
-    printVectorToF(fd, "Barriers:", &barriers);
+    printVectorToF(fd, "Barriers:", barriers);
 //    fd << "Barriers:\n";
 //    for (Barrier & i : barriers) {
 //        fd << i.getStartPos().rx() << " " << i.getStartPos().ry() << " " <<
@@ -340,20 +348,24 @@ void Level::recordToFile(std::string path) {
 //    }
     if (otherObjects[0] != nullptr) {
         fd << "Finish:\n";
-        fd << otherObjects[0]->getStartPos().rx() << " " << otherObjects[0]->getStartPos().ry() << " " <<
-              otherObjects[0]->getEndPos().rx() << " " << otherObjects[0]->getEndPos().ry() << std::endl;
+        printObjectToF(fd, otherObjects[0]);
+    }
+    else {
+        fd << "/\n";
     }
     if (otherObjects[1] != nullptr) {
         fd << "MovingObjects:\n";
-        fd << otherObjects[1]->getStartPos().rx() << " " << otherObjects[1]->getStartPos().ry() << " " <<
-              otherObjects[1]->getEndPos().rx() << " " << otherObjects[1]->getEndPos().ry() << std::endl;
+        printObjectToF(fd, otherObjects[1]);
     }
-    printVectorToF(fd, "KillingObjects:", nullptr,  &killingObjects);
-    printVectorToF(fd, "JumpingObjects:", nullptr, &jumpingObjects);
+    else {
+        fd << "/\n";
+    }
+    printVectorToF(fd, "KillingObjects:",  killingObjects);
+    printVectorToF(fd, "JumpingObjects:", jumpingObjects);
     if (otherObjects[2] != nullptr) {
             fd << "KeyObjects:\n";
-            fd << otherObjects[2]->getStartPos().rx() << " " << otherObjects[2]->getStartPos().ry() << " " <<
-                  otherObjects[2]->getEndPos().rx() << " " << otherObjects[2]->getEndPos().ry() << " " << elementIndex <<  std::endl;
+            fd << otherObjects[2]->getStartPos().rx() + levelShift << " " << otherObjects[2]->getStartPos().ry() << " " <<
+                  otherObjects[2]->getEndPos().rx() + levelShift << " " << otherObjects[2]->getEndPos().ry() << " " << elementIndex <<  std::endl;
     }
 
 }
@@ -366,7 +378,7 @@ bool Level::isMovePossible(Move move) {
         QPoint startPos = QPoint(getCharStartPos().rx() + HORIZONTAL_MOVEMENT, getCharStartPos().ry());
         QPoint endPos = QPoint(getCharEndPos().rx() + HORIZONTAL_MOVEMENT, getCharEndPos().ry());
         for (auto & i : barriers) {
-            if (i.isCrossed(startPos, endPos)) {
+            if (i->isCrossed(startPos, endPos)) {
                 return false;
             }
         }
@@ -380,7 +392,7 @@ bool Level::isMovePossible(Move move) {
         QPoint startPos = QPoint(getCharStartPos().rx() - HORIZONTAL_MOVEMENT, getCharStartPos().ry());
         QPoint endPos = QPoint(getCharEndPos().rx() - HORIZONTAL_MOVEMENT, getCharEndPos().ry());
         for (auto & i : barriers) {
-            if (i.isCrossed(startPos, endPos)) {
+            if (i->isCrossed(startPos, endPos)) {
                 return false;
             }
         }
@@ -393,7 +405,7 @@ bool Level::isMovePossible(Move move) {
         QPoint startPos = QPoint(getCharStartPos().rx(), getCharStartPos().ry() + DOWN_MOVEMENT);
         QPoint endPos = QPoint(getCharEndPos().rx(), getCharEndPos().ry() + DOWN_MOVEMENT);
         for (auto & i : barriers) {
-            if (i.isCrossed(startPos, endPos)) {
+            if (i->isCrossed(startPos, endPos)) {
                 return false;
             }
         }
@@ -403,13 +415,13 @@ bool Level::isMovePossible(Move move) {
         if (getCharStartPos().ry() < SCREEN_BOARD_START_Y) {
             return false;
         }
-        if (character->getJumpCount() > MAX_JUMP_COUNT) {
+        if (character->getJumpCount() >= MAX_JUMP_COUNT) {
             return false;
         }
         QPoint startPos = QPoint(getCharStartPos().rx(), getCharStartPos().ry() - UP_MOVEMENT);
         QPoint endPos = QPoint(getCharEndPos().rx(), getCharEndPos().ry() - UP_MOVEMENT);
         for (auto & i : barriers) {
-            if (i.isCrossed(startPos, endPos)) {
+            if (i->isCrossed(startPos, endPos)) {
                 return false;
             }
         }
@@ -437,13 +449,13 @@ bool Level::isFinish() {
 }
 
 bool Level::isMovingCameraNeed() {
-    for (Barrier i : barriers) {
+    for (Barrier* i : barriers) {
         if (keyConnectedObject != nullptr) {
-            if (i == *keyConnectedObject) {
+            if (i == keyConnectedObject) {
                 continue;
             }
         }
-        if (!i.isVisible()) {
+        if (!i->isVisible()) {
             return true;
         }
     }
@@ -478,6 +490,9 @@ void Level::resetLevel() {
     for (int i = 0; i < window->labels.size(); ++i) {
         window->labels[i]->setVisible(false);
     }
+    for (auto & i: text) {
+        i->setVisible(false);
+    }
     window->resetLevel();
 }
 
@@ -486,11 +501,6 @@ void Level::increaseCharacterJumpCount() {
 }
 
 void Level::moveAllObjects(Move move) {
-    // Let's add finish in barriers for simplifying code
-    // Then delete it from there
-//    for (auto &i : otherObjects) {
-//        barriers.push_back(*i);
-//    }
       for (auto &i : otherObjects) {
           i->move(move);
       }
@@ -501,7 +511,19 @@ void Level::moveAllObjects(Move move) {
           i->move(move);
       }
       for (auto &i : barriers) {
-          i.move(move);
+          i->move(move);
+      }
+      int par;
+      if (move == Move::LEFT) {
+          par = HORIZONTAL_MOVEMENT;
+      }
+      if (move == Move::RIGHT) {
+          par = -HORIZONTAL_MOVEMENT;
+      }
+      levelShift -= HORIZONTAL_MOVEMENT;
+      for (auto & i : background) {
+          i->move(par, 0);
+          std::cout << "1";
       }
       //leftObject->move(move);
       //rightObject->move(move);
@@ -556,11 +578,11 @@ int Level::textCount() {
 void Level::setChangingObject(QPoint pos) {
     int x = pos.rx();
     int y = pos.ry();
-    for (Barrier& i: barriers) {
-        if (x > i.getStartPos().rx() && x < i.getEndPos().rx() &&
-            y > i.getStartPos().ry() && y < i.getEndPos().ry()) {
+    for (Barrier*& i: barriers) {
+        if (x > i->getStartPos().rx() && x < i->getEndPos().rx() &&
+            y > i->getStartPos().ry() && y < i->getEndPos().ry()) {
 //            i.deactivate();
-                changingObject = &i;
+                changingObject = i;
                 return;
         }
     }
@@ -643,7 +665,7 @@ Barrier* Level::getNewObject(Object o) {
     Barrier *b = new Barrier(window->labels[labelMaxIndex], QPoint(500, 500), QPoint(600, 600));
     window->labels[labelMaxIndex]->setStyleSheet(buttonsLabels[static_cast<int>(o)]);
     if (o == Object::BARRIER)
-        barriers.push_back(*b);
+        barriers.push_back(b);
     if (o == Object::KILLING_OBJECT)
         killingObjects.push_back(b);
     if (o == Object::JUMPING_OBJECT)
@@ -658,4 +680,19 @@ int Level::getRightPosX() {
 
 int Level::getLeftPosX() {
     return leftObject->getStartPos().rx();
+}
+
+QLabel* Level::getCharLabel() {
+    return character->getLabel();
+}
+
+Level::~Level() {
+    for (auto & i: text) {
+        i->setVisible(false);
+    }
+    for (auto & i : background) {
+        i->setVisible(false);
+    }
+    delete character;
+    character = nullptr;
 }

@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <QMovie>
 #include "level.h"
 #include "gameobject.h"
 
@@ -25,16 +26,18 @@ public:
     void resetJumpCount();
     int getJumpCount();
     void increaseJumpCount();
-    void setLevel(Level* level);
     void changeMovePic();
     void changeJumpPic(int index = -1);
     void setMirrored(bool par);
+    QLabel* getLabel();
 
 private:
     std::string url;
     std::string urlMirror;
     std::set <Move> moves;
     Level* level;
+    QMovie* leftMovie;
+    QMovie* rightMovie;
     int picIndex = 0;
 
     int changePicIndex = 0;

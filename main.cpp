@@ -7,8 +7,5 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.setWindowTitle("Game");
     w.show();
-
-
-
     return a.exec();
 }

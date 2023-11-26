@@ -7,3 +7,7 @@ QPoint GameObject::getStartPos() const {
 QPoint GameObject::getEndPos() const {
     return endPos;
 }
+
+void GameObject::setVisible(bool par) {
+    label->setVisible(par);
+}

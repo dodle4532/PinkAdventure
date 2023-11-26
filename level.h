@@ -24,8 +24,9 @@ class Level
 {
 public:
     Level() = default;
-    Level(Character* _character, std::vector <Barrier> _barriers, MainWindow* _window);
-    Level(std::string path, MainWindow* _window, Character* _character = nullptr);
+    Level(Character* _character, std::vector <Barrier*> _barriers, MainWindow* _window);
+    Level(std::string path, MainWindow* _window, std::vector<QLabel*> background);
+    ~Level();
 
     void fall();
     void move();
@@ -36,14 +37,17 @@ public:
     QPoint getCharStartPos();
     QPoint getCharEndPos();
 
-    std::vector <Barrier> getBarriers();
+    std::vector <Barrier*> getBarriers();
 
+    void printVectorToF(std::ofstream& fd, std::string name, std::vector<Barrier*> v2);
+    void printObjectToF(std::ofstream& fd, Barrier* b);
     void recordToFile(std::string path);
 
     bool isMovePossible(Move move);
 
     void setPicture(std::string path, QLabel* pic);
     void setCharacter(Character* _character);
+    QLabel* getCharLabel();
 
     bool isFinish();
     bool isDead();
@@ -82,7 +86,8 @@ public:
     void setChangingObject(QPoint pos);
     void moveChangingObject(QPoint pos);
     void resizeChangingObject(QPoint pos);
-    void updateLeftAndRightObject(int& min, int& max, Barrier* barrier);
+    void setLeftAndRight(Barrier* i, int& min, int& max);
+    void updateLeftAndRightObject();
 
     int getRightPosX();
     int getLeftPosX();
@@ -90,8 +95,9 @@ public:
 private:
     Character* character;
     Barrier* changingObject;
-    std::vector <Barrier> barriers;
-    std::vector <Barrier> text;
+    std::vector<QLabel*> background;
+    std::vector <Barrier*> barriers;
+    std::vector <Barrier*> text;
     MainWindow* window;
 
     /*
@@ -111,7 +117,7 @@ private:
     int elementIndex = -1;
     Barrier* keyConnectedObject;
     int labelMaxIndex = 0;
-
+    int levelShift = 0; // Сдвиг камеры
 //private slots:
 };
 

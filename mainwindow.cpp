@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "header.h"
+#include "menu.h"
+#include <QDebug>
 #define BUTTONS_COUNT 5
 QString buttonsLabels[] = {BARRIER_LABEL, FINISH_LABEL, MOVING_OBJECT_LABEL,
                            KILLING_OBJECT_LABEL, JUMPING_OBJECT_LABEL};
@@ -15,15 +17,23 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setWindowState(Qt::WindowMaximized);
 //    this->setWindowState(Qt::WindowFullScreen);   полноэкранный режим
 
-    this->setStyleSheet("#centralWidget { "
-                        " border-image: url(:/new/prefix1/pictures/background.jpg) 0 0 0 0 stretch stretch;"
-                        "}");
+//    this->setStyleSheet("#centralWidget { "
+//                        " border-image: url(:/new/prefix1/pictures/background.jpg) 0 0 0 0 stretch stretch;"
+//                        "}");
 
 //    labels.resize(MAX_LABELS);
 //    for (auto & i : labels) {
 //        i = new QLabel(this);
 //    }
-    resetLevel();
+
+    for (int i = 0; i < 1; ++i) {
+        QLabel* background = new QLabel(this);
+        background->setStyleSheet("border-image: url(:/new/prefix1/pictures/background.jpg)");
+        background->resize(1920, 1080);
+        background->move(1920 * i, 0);
+        background->setVisible(false);
+        backgrounds.push_back(background);
+    }
 
     QTimer *moveTimer = new QTimer(this);
     connect(moveTimer, SIGNAL(timeout()), this, SLOT(move()));
@@ -42,22 +52,41 @@ MainWindow::MainWindow(QWidget *parent) :
         signalMapper->setMapping(buttons[i], i);
     }
     connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(buttonPressed(int))) ;
-//    ui->floor->resize(10000, 1000);
-//    ui->floor->move(ui->floor->pos() + QPoint(0, 200));
-//    std::vector <Barrier> barriers;
-//    barriers.push_back(Barrier(ui->barrier_1, QPoint(300, 700), QPoint(550, 750)));
-//    barriers.push_back(Barrier(ui->barrier_2, QPoint(400, 650), QPoint(550, 700)));
-//    level = new Level(character, barriers, this);
-//    level->recordToFile("Test.txt");
-//    setPicture(":/new/prefix1/pictures/floor.png", ui->floor);
+    QPushButton* playButton = new QPushButton(this);
+    connect(playButton, SIGNAL(clicked(bool)), this, SLOT(resetLevel()));
+    playButton->move(100, 440);
+    playButton->resize(400, 200);
+    playButton->setText("Играть");
+    QPushButton* closeButton = new QPushButton(this);
+    connect(closeButton, SIGNAL(clicked(bool)), this, SLOT(closeGame()));
+    closeButton->move(1400, 440);
+    closeButton->resize(400, 200);
+    closeButton->setText("Выход");
+    QPushButton* instructionButton = new QPushButton(this);
+    connect(instructionButton, SIGNAL(clicked(bool)), this, SLOT(showInstuction()));
+    instructionButton->move(750, 440);
+    instructionButton->resize(400, 200);
+    instructionButton->setText("Инфо");
+    menu = new Menu(playButton, closeButton, instructionButton, new QLabel(this));
 }
 
 void MainWindow::fall() {
-    level->fall();
+    if (level != nullptr)
+        level->fall();
 }
 
 void MainWindow::move() {
-    level->move();
+    if (level != nullptr)
+        level->move();
+}
+
+void MainWindow::closeGame() {
+    std::exit(0);
+}
+
+void MainWindow::showInstuction() {
+    isInstruction = true;
+    resetLevel(true);
 }
 
 void MainWindow::setButtonsVisible(bool par) {
@@ -100,14 +129,23 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     }
 
     if (key == Qt::Key_R) {
-        resetLevel();
+        level->resetLevel();
     }
 
     if (key == 16777220) {
         if (level != nullptr) {
             if (level->isTextLevel) {
-                nextLevel();
-                resetLevel();
+                if (isInstruction) {
+                    for (auto & i : labels) {
+                        i->setVisible(false);
+                    }
+                    menu->setVisible(true);
+                    isInstruction = false;
+                }
+                else {
+                    nextLevel();
+                    level->resetLevel();
+                }
             }
         }
     }
@@ -133,16 +171,24 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
 void MainWindow::keyReleaseEvent(QKeyEvent *event) {
     int key = event->key();
     if(key == Qt::Key_W || key == 1062) {
-        level->resetMove(Move::UP);
+        if (!(GetKeyState('W') & 0x8000)){
+            level->resetMove(Move::UP);
+        }
     }
     if (key == Qt::Key_A || key == 1060) {
-        level->resetMove(Move::LEFT);
+        if (!(GetKeyState('A') & 0x8000)){
+            level->resetMove(Move::LEFT);
+        }
     }
     if (key == Qt::Key_S || key == 1067) {
-        level->resetMove(Move::DOWN);
+        if (!(GetKeyState('S') & 0x8000)){
+            level->resetMove(Move::DOWN);
+        }
     }
     if (key == Qt::Key_D || key == 1042) {
-        level->resetMove(Move::RIGHT);
+        if (!(GetKeyState('D') & 0x8000)){
+            level->resetMove(Move::RIGHT);
+        }
     }
 //    if (ui->character->pos() != character->getStartPos()) {
 //       // std::exit(0);
@@ -180,7 +226,7 @@ void MainWindow::setNewCheckpoint(QPoint startPos, QPoint endPos) {
     charCheckPointPos.second = endPos;
 }
 
-void MainWindow::resetLevel() {
+void MainWindow::resetLevel(bool isInstruction) {
 
     if (level != nullptr) {
         if (level->isTextLevel) {
@@ -200,22 +246,29 @@ void MainWindow::resetLevel() {
         }
     }
     if (levelNumber == FINAL_LEVEL) {
-        std::exit(0);
+        menu->setVisible(true);
+        return;
     }
-    level = new Level("Test" + std::to_string(levelNumber) + ".txt", this);
+    menu->setVisible(false);
+    for (int i = 0; i < labels.size(); ++i) {
+        labels[i]->setVisible(true);
+    }
+    garbage.push_back(level);
+    if (isInstruction)
+        level = new Level("Test0.txt", this, backgrounds);
+    else
+        level = new Level("Test" + std::to_string(levelNumber) + ".txt", this, backgrounds);
+
 //    Character* character = new Character(":/new/prefix1/pictures/character.png",
 //                              ":/new/prefix1/pictures/character(mirrored).png",  ui->character,
 //                              charCheckPointPos.first, charCheckPointPos.second, level);
-    Character* character = new Character(":/new/prefix1/pictures/Pink_Monster.png",
-                              ":/new/prefix1/pictures/m_Pink_Monster.png",  ui->character,
-                              charCheckPointPos.first, charCheckPointPos.second, level);
+
     if (level->isTextLevel) {
-        ui->character->setVisible(false);
+        level->getCharLabel()->setVisible(false);
     }
     else {
-        ui->character->setVisible(true);
+        level->getCharLabel()->setVisible(true);
     }
-    level->setCharacter(character);
     if (checkpointNumber > 0) {
         level->moveCamera();
     }
@@ -248,8 +301,16 @@ void MainWindow::buttonPressed(int o) {
     level->getNewObject(static_cast<Object>(o));
 }
 
+std::pair<QPoint, QPoint> MainWindow::getCheckpoint() {
+    return charCheckPointPos;
+}
+
 MainWindow::~MainWindow()
 {
     delete ui;
+    for (auto & i : garbage) {
+        delete i;
+    }
+    delete menu;
 }
 

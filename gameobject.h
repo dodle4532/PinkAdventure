@@ -10,7 +10,8 @@ enum class Move {
     LEFT = 1,
     RIGHT,
     UP,
-    DOWN
+    DOWN,
+    FALL
 };
 
 class GameObject
@@ -19,6 +20,7 @@ public:
     GameObject() = default;
     QPoint getStartPos() const;
     QPoint getEndPos() const;
+    void setVisible(bool par);
 
 protected:
     QLabel* label;

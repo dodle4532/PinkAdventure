@@ -27,17 +27,23 @@ class Character;
 class Barrier;
 class Level;
 enum class Object;
+class Menu;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+public slots:
+    void resetLevel(bool isInstruction = false);
+    void closeGame();
+    void showInstuction();
+
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     static void setPicture(std::string path, QLabel* pic);
-    void resetLevel();
     void setNewCheckpoint(QPoint startPos, QPoint endPos);
+    std::pair<QPoint, QPoint> getCheckpoint();
     void increaseCheckpointNumber();
     QLabel* getNewVector(std::string style);
     QVector <QLabel*> getLabels();
@@ -54,19 +60,21 @@ private slots:
 private:
     Ui::MainWindow *ui;
     int levelNumber = FIRST_LEVEL;
-    //Character* character;
+    Menu* menu;
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void keyReleaseEvent(QKeyEvent *event);
     virtual void mousePressEvent(QMouseEvent *e);
     virtual void mouseMoveEvent(QMouseEvent *e);
     QVector<QPushButton*> buttons; // barrier, finish, move, kill, jump
-    //std::vector <Barrier> barriers;
+    std::vector <QLabel*> backgrounds;
     Level* level;
     std::pair <QPoint, QPoint> charCheckPointPos = {QPoint(CHAR_START_X,CHAR_START_Y),
                                                     QPoint(CHAR_START_X + CHAR_SIZE_X,CHAR_START_Y + CHAR_SIZE_Y)}; // startPos, endPos
     size_t checkpointNumber = 0;
     bool isEdit = false;
     bool isResizeMode = false;
+    bool isInstruction = false;
+    std::vector<Level*> garbage;
 };
 
 #endif // MAINWINDOW_H

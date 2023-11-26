@@ -1,6 +1,7 @@
 #include "character.h"
 #include "mainwindow.h"
 #include <QPicture>
+#include <QSize>
 
 std::string charMovementPic[] = {":/new/prefix1/pictures/Pink_Monster.png",
                                  ":/new/prefix1/pictures/Pink_Monster_Run_1.png",
@@ -40,50 +41,50 @@ Character::Character(std::string _url, std::string url_2, QLabel* _label, QPoint
 //    label->setScaledContents(true);
 //    label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     MainWindow::setPicture(url, label);
-}
-
-void Character::setLevel(Level *level) {
-    this->level = level;
+    leftMovie = new QMovie(":/new/prefix1/pictures/m_Pink_Monster_Run.gif");
+    leftMovie->start();
+    rightMovie = new QMovie(":/new/prefix1/pictures/Pink_Monster_Run.gif");
+    rightMovie->start();
 }
 
 void Character::move(Move move) {
     if (move == Move::RIGHT) {
+        changeMovePic();
         if (level->isMovePossible(move)) {
             if (isMirrored == true) {
                 level->setPicture(url, label);
+                if (moves.find(Move::LEFT) == moves.end())
+                    isMirrored = false;
             }
-            isMirrored = false;
             if (startPos.rx() > SCREEN_BOARD_END_X * CAMERA_MOVE_PAR_RIGHT_X &&
                     level->getRightPosX() > SCREEN_BOARD_END_X * CAMERA_MOVE_PAR_RIGHT_Y
                 && level->isMoveCameraNeeded) {
-                changeMovePic();
                 level->moveAllObjects(Move::LEFT);
                 return;
             }
             startPos = QPoint(startPos.rx() + HORIZONTAL_MOVEMENT, startPos.ry());
             endPos = QPoint(endPos.rx() + HORIZONTAL_MOVEMENT, endPos.ry());
             label->move(label->pos() + QPoint(HORIZONTAL_MOVEMENT, SCREEN_BOARD_START_Y));
-            changeMovePic();
             return;
         }
     }
     if (move == Move::LEFT) {
+        changeMovePic();
         if (level->isMovePossible(move)) {
             if (isMirrored == false) {
                 level->setPicture(urlMirror, label);
+                if (moves.find(Move::RIGHT) == moves.end())
+                    isMirrored = true;
             }
-            isMirrored = true;
             if (startPos.rx() < SCREEN_BOARD_END_X * CAMERA_MOVE_PAR_LEFT_X
                     && level->getLeftPosX() < SCREEN_BOARD_END_X * CAMERA_MOVE_PAR_LEFT_Y
                 && level->isMoveCameraNeeded) {
                 level->moveAllObjects(Move::RIGHT);
-                changeMovePic();
                 return;
             }
             startPos = QPoint(startPos.rx() - HORIZONTAL_MOVEMENT, startPos.ry());
             endPos = QPoint(endPos.rx() - HORIZONTAL_MOVEMENT, endPos.ry());
             label->move(label->pos() + QPoint(-HORIZONTAL_MOVEMENT, SCREEN_BOARD_START_Y));
-            changeMovePic();
             return;
         }
     }
@@ -103,23 +104,37 @@ void Character::move(Move move) {
             endPos = QPoint(endPos.rx(), endPos.ry() - UP_MOVEMENT);
             label->move(label->pos() + QPoint(SCREEN_BOARD_START_Y, -UP_MOVEMENT));
             jumpCount++;
-           // changeJumpPic();
+            //std::cout << jumpCount << std::endl;
+            changeJumpPic();
             return;
         }
+        jumpCount = MAX_JUMP_COUNT;
     }
 }
 
 void Character::changeMovePic() {
-    if (isMirrored) {
-        MainWindow::setPicture(charMovementPicReversed[picIndex], label);
+    if (moves.find(Move::UP) != moves.end() || moves.find(Move::FALL) != moves.end()) {
+        return;
+    }
+    if (moves.find(Move::LEFT) == moves.end() && moves.find(Move::RIGHT) == moves.end()) {
+        if (isMirrored) {
+            MainWindow::setPicture(charMovementPicReversed[0], label);
+            return;
+        }
+        else {
+            MainWindow::setPicture(charMovementPic[0], label);
+            return;
+        }
     }
     else {
-        MainWindow::setPicture(charMovementPic[picIndex], label);
+        if (isMirrored) {
+            label->setMovie(leftMovie);
+        }
+        else {
+            label->setMovie(rightMovie);
+        }
     }
-    picIndex++;
-    if (picIndex > 6) {
-        picIndex = 0;
-    }
+
 }
 
 void Character::changeJumpPic(int index) {
@@ -141,8 +156,14 @@ void Character::changeJumpPic(int index) {
 }
 
 void Character::move() {
+    if (moves.size() == 0) {
+        return;
+    }
     if (level->isTextLevel) {
         return;
+    }
+    if (moves.size() == 0) {
+        changeMovePic();
     }
     for (Move i : moves) {
         move(i);
@@ -156,14 +177,8 @@ void Character::move() {
     }
     if (level->isCheckpoint()) {
         level->increaseCheckpointNumber();
- //       level->moveCamera();
         level->setNewCheckpoint();
     }
-//    if(level->isMovingCameraNeed()) {
-//        level->increaseCheckpointNumber();
-//        level->moveCamera();
-//        level->setNewCheckpoint();
-//    }
     if (level->isDead()) {
         level->resetLevel();
     }
@@ -179,12 +194,13 @@ void Character::move() {
 
 void Character::resetMove(Move move) {
     moves.erase(move);
-    if (move == Move::LEFT || move == Move::RIGHT) {
-        picIndex = 0;
-        changeMovePic();
-    }
     if (move == Move::UP) {
         jumpCount = MAX_JUMP_COUNT;
+    }
+    if (move == Move::LEFT || move == Move::RIGHT) {
+        picIndex = 0;
+//        std::cout << "1";
+//        changeMovePic();
     }
 }
 
@@ -201,6 +217,7 @@ void Character::fall() {
         return;
     }
     if (level->isMovePossible(Move::DOWN)) {
+        moves.insert(Move::FALL);
         startPos = QPoint(startPos.rx(), startPos.ry() + FALL_MOVEMENT);
         endPos = QPoint(endPos.rx(), endPos.ry() + FALL_MOVEMENT);
         label->move(label->pos() + QPoint(SCREEN_BOARD_START_X, FALL_MOVEMENT));
@@ -210,10 +227,13 @@ void Character::fall() {
         changeJumpPic(2);
         return;
     }
+    moves.erase(Move::FALL);
     if (moves.find(Move::RIGHT) == moves.end() && moves.find(Move::LEFT) == moves.end()) {
         changeJumpPic(4);
     }
-    resetJumpCount();
+    if (jumpCount == MAX_JUMP_COUNT) {
+        resetJumpCount();
+    }
 }
 
 int Character::getJumpCount() {
@@ -226,4 +246,8 @@ void Character::increaseJumpCount() {
 
 void Character::setMirrored(bool par) {
     isMirrored = par;
+}
+
+QLabel* Character::getLabel() {
+    return label;
 }
