@@ -1,0 +1,11 @@
+Text:
+50 20 700 200 "Смотри шире..."
+Barriers:
+364 794 524 824
+700 650 797 684
+1050 600 1145 631
+Finish:
+1650 600 1750 650 "border-image: url(:/new/prefix1/pictures/finishh.png);"
+/
+/
+/

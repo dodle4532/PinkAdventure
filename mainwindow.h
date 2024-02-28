@@ -64,6 +64,7 @@ private:
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void keyReleaseEvent(QKeyEvent *event);
     virtual void mousePressEvent(QMouseEvent *e);
+    virtual void mouseReleaseEvent(QMouseEvent* e);
     virtual void mouseMoveEvent(QMouseEvent *e);
     QVector<QPushButton*> buttons; // barrier, finish, move, kill, jump
     std::vector <QLabel*> backgrounds;
@@ -74,6 +75,7 @@ private:
     bool isEdit = false;
     bool isResizeMode = false;
     bool isInstruction = false;
+    QVector<QPushButton*> levelButtons;
     std::vector<Level*> garbage;
 };
 

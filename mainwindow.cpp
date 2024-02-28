@@ -3,8 +3,9 @@
 #include "header.h"
 #include "menu.h"
 #include <QDebug>
+#include <QHBoxLayout>
 #define BUTTONS_COUNT 5
-QString buttonsLabels[] = {BARRIER_LABEL, FINISH_LABEL, MOVING_OBJECT_LABEL,
+QString buttonsLabels[] = {"border-image: url(:/new/prefix1/pictures/floor.png);", FINISH_LABEL, "background-color: rgba(0, 0, 170, 90);",
                            KILLING_OBJECT_LABEL, JUMPING_OBJECT_LABEL};
 
 
@@ -17,14 +18,25 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setWindowState(Qt::WindowMaximized);
 //    this->setWindowState(Qt::WindowFullScreen);   полноэкранный режим
 
+    this->setStyleSheet("#centralWidget { "
+                        " background-image: url(:/new/prefix1/pictures/Brown.png) 0 0 0 0 stretch stretch;"
+                        "}");
+
 //    this->setStyleSheet("#centralWidget { "
-//                        " border-image: url(:/new/prefix1/pictures/background.jpg) 0 0 0 0 stretch stretch;"
+//                        " background-color: #477855 0 0 0 0 stretch stretch;"
 //                        "}");
+
 
 //    labels.resize(MAX_LABELS);
 //    for (auto & i : labels) {
 //        i = new QLabel(this);
 //    }
+
+
+//    QLabel* label1 = new QLabel(this);
+//    label1->setStyleSheet("background-color: #477855;");
+//    label1->resize(1920, 1080);
+
 
     for (int i = 0; i < 1; ++i) {
         QLabel* background = new QLabel(this);
@@ -50,23 +62,25 @@ MainWindow::MainWindow(QWidget *parent) :
         buttons[i]->setStyleSheet(buttonsLabels[i]);
         connect(buttons[i], SIGNAL(clicked(bool)), signalMapper, SLOT(map()));
         signalMapper->setMapping(buttons[i], i);
+        levelButtons.push_back(buttons[i]);
     }
-    connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(buttonPressed(int))) ;
+    connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(buttonPressed(int)));
+
     QPushButton* playButton = new QPushButton(this);
     connect(playButton, SIGNAL(clicked(bool)), this, SLOT(resetLevel()));
     playButton->move(100, 440);
-    playButton->resize(400, 200);
-    playButton->setText("Играть");
+    playButton->resize(200, 200);
+ //   playButton->setText("Играть");
     QPushButton* closeButton = new QPushButton(this);
     connect(closeButton, SIGNAL(clicked(bool)), this, SLOT(closeGame()));
-    closeButton->move(1400, 440);
-    closeButton->resize(400, 200);
-    closeButton->setText("Выход");
+    closeButton->move(1600, 440);
+    closeButton->resize(200, 200);
+ //   closeButton->setText("Выход");
     QPushButton* instructionButton = new QPushButton(this);
     connect(instructionButton, SIGNAL(clicked(bool)), this, SLOT(showInstuction()));
-    instructionButton->move(750, 440);
-    instructionButton->resize(400, 200);
-    instructionButton->setText("Инфо");
+    instructionButton->move(800, 440);
+    instructionButton->resize(200, 200);
+//    instructionButton->setText("Инфо");
     menu = new Menu(playButton, closeButton, instructionButton, new QLabel(this));
 }
 
@@ -105,13 +119,18 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     }
 
     if (key == Qt::Key_E) {
-        if (isEdit) {
-            setButtonsVisible(false);
-            isEdit = false;
-        }
-        else {
-            setButtonsVisible(true);
-            isEdit = true;
+        if (levelNumber > FINAL_LEVEL - 1 && !menu->isVisible()) {
+            if (isEdit) {
+                setButtonsVisible(false);
+                isEdit = false;
+            }
+            else {
+                setButtonsVisible(true);
+                isEdit = true;
+                levelButtons[3]->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+                levelButtons[3]->setFocus();
+;
+            }
         }
     }
 
@@ -196,8 +215,26 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event) {
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *e) {
+    QPoint pos = e->pos();
+    int j = 0;
+    for (QPushButton* & i : buttons) {
+        if (i->pos().rx() < pos.rx() && pos.rx() < i->pos().rx() + i->size().rwidth() &&
+            i->pos().ry() < pos.ry() && pos.ry() < i->pos().ry() + i->size().rheight()) {
+            i->setDown(true);
+            buttonPressed(j);
+            return;
+        }
+        j++;
+    }
     if (isEdit) {
        level->setChangingObject(e->pos());
+    }
+}
+
+void MainWindow::mouseReleaseEvent(QMouseEvent *e) {
+    Q_UNUSED(e);
+    for (auto & i : buttons) {
+        i->setDown(false);
     }
 }
 
@@ -245,8 +282,10 @@ void MainWindow::resetLevel(bool isInstruction) {
             labels[i]->setVisible(true);
         }
     }
-    if (levelNumber == FINAL_LEVEL) {
+    if (levelNumber > FINAL_LEVEL) {
         menu->setVisible(true);
+        setButtonsVisible(false);
+        isEdit = false;
         return;
     }
     menu->setVisible(false);
@@ -255,9 +294,9 @@ void MainWindow::resetLevel(bool isInstruction) {
     }
     garbage.push_back(level);
     if (isInstruction)
-        level = new Level("Test0.txt", this, backgrounds);
+        level = new Level("Test0.txt", this);
     else
-        level = new Level("Test" + std::to_string(levelNumber) + ".txt", this, backgrounds);
+        level = new Level("Test" + std::to_string(levelNumber) + ".txt", this);
 
 //    Character* character = new Character(":/new/prefix1/pictures/character.png",
 //                              ":/new/prefix1/pictures/character(mirrored).png",  ui->character,

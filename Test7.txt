@@ -1,0 +1,4 @@
+Text:
+50 20 1700 200 "Создай свой уровень!E-menu,Y-resize mode,P-save"
+Barriers:
+1 1 1 1

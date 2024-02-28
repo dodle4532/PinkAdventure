@@ -1,0 +1,29 @@
+Barriers:
+787 806 884 839 "background-image: url(:/new/prefix1/pictures/floor.png);"
+942 739 1038 771 "background-image: url(:/new/prefix1/pictures/floor.png);"
+1095 686 1193 720 "background-image: url(:/new/prefix1/pictures/floor.png);"
+1241 619 1339 653 "background-image: url(:/new/prefix1/pictures/floor.png);"
+1379 571 1475 605 "background-image: url(:/new/prefix1/pictures/floor.png);"
+1530 514 1628 547 "background-image: url(:/new/prefix1/pictures/floor.png);"
+1662 458 1759 490 "background-image: url(:/new/prefix1/pictures/floor.png);"
+2161 652 2194 684 "background-image: url(:/new/prefix1/pictures/floor.png);"
+2378 839 2443 900 "background-image: url(:/new/prefix1/pictures/floor.png);"
+2872 885 4281 904 "background-image: url(:/new/prefix1/pictures/floor.png);"
+2880 597 4290 628 "background-image: url(:/new/prefix1/pictures/floor.png);"
+690 806 787 900 "background-image: url(:/new/prefix1/pictures/floor.png);"
+2346 807 2443 839
+Finish:
+4536 790 4636 901 "border-image: url(:/new/prefix1/pictures/finish.png);"
+MovingObjects:
+2713 485 2741 916 "background-color: 'transparent';"
+KillingObjects:
+365 850 463 900 "border-image:url(:/new/prefix1/pictures/spikes.png);"
+115 850 213 900 "border-image:url(:/new/prefix1/pictures/spikes.png);"
+787 839 2378 901 "background-image: url(:/new/prefix1/pictures/water.png);"
+3065 835 3118 884 "border-image:url(:/new/prefix1/pictures/spikes.png);"
+3265 835 3318 884 "border-image:url(:/new/prefix1/pictures/spikes.png);"
+3465 835 3518 884 "border-image:url(:/new/prefix1/pictures/spikes.png);"
+3665 835 3718 884 "border-image:url(:/new/prefix1/pictures/spikes.png);"
+3865 835 3918 884 "border-image:url(:/new/prefix1/pictures/spikes.png);"
+4065 835 4118 884 "border-image:url(:/new/prefix1/pictures/spikes.png);"
+/

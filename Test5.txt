@@ -1,0 +1,23 @@
+Text:
+50 20 1700 200 "Остерегайся воды, ты не умеешь плавать("
+Barriers:
+100 803 197 900 "background-image: url(:/new/prefix1/pictures/floor.png);"
+500 804 533 900 "background-image: url(:/new/prefix1/pictures/floor.png);"
+870 568 1063 631 "background-image: url(:/new/prefix1/pictures/floor.png);"
+1550 550 1566 561 "background-image: url(:/new/prefix1/pictures/floor.png);"
+1550 550 2222 582 "background-image: url(:/new/prefix1/pictures/floor.png);"
+2470 550 2503 582 "background-image: url(:/new/prefix1/pictures/floor.png);"
+2800 550 2834 584 "background-image: url(:/new/prefix1/pictures/floor.png);"
+3130 550 3162 584 "background-image: url(:/new/prefix1/pictures/floor.png);"
+3460 550 3493 583 "background-image: url(:/new/prefix1/pictures/floor.png);"
+3790 550 3916 582 "background-image: url(:/new/prefix1/pictures/floor.png);"
+1331 548 1427 581 "background-image: url(:/new/prefix1/pictures/floor.png);"
+Finish:
+3850 400 3924 551 "border-image: url(:/new/prefix1/pictures/finish.png);"
+MovingObjects:
+1900 0 1950 600 "background-color: 'transparent';"
+KillingObjects:
+197 820 500 900 "background-image: url(:/new/prefix1/pictures/water.png);"
+533 820 5000 900 "background-image: url(:/new/prefix1/pictures/water.png);"
+JumpingObjects:
+683 627 703 647 "border-image: url(:/new/prefix1/pictures/jumper.png);"

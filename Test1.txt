@@ -1,0 +1,12 @@
+Text:
+50 20 700 200 "Доберись до финиша!!!"
+Barriers:
+360 794 551 825 "background-image: url(:/new/prefix1/pictures/floor.png);"
+700 700 861 733 "background-image: url(:/new/prefix1/pictures/floor.png);"
+970 600 1130 633 "background-image: url(:/new/prefix1/pictures/floor.png);"
+1100 500 1229 532 "background-image: url(:/new/prefix1/pictures/floor.png);"
+Finish:
+1200 350 1304 501 "border-image: url(:/new/prefix1/pictures/finish.png);"
+/
+/
+/

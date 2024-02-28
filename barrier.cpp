@@ -1,10 +1,11 @@
 #include "barrier.h"
 
-Barrier::Barrier(QLabel* _label, QPoint _startPos, QPoint _endPos)
+Barrier::Barrier(QLabel* _label, QPoint _startPos, QPoint _endPos, std::string style)
 {
     label = _label;
     startPos = _startPos;
     endPos = _endPos;
+    this->style = style;
     if (label != nullptr) {
         label->move(startPos);
         label->resize(abs(endPos.rx() - startPos.rx()), abs(endPos.ry() - startPos.ry()));
@@ -145,6 +146,10 @@ bool Barrier::isVisible() {
     return false;
 }
 
+std::string Barrier::getStyle() {
+    return style;
+}
+
 void Barrier::activate() {
     if (!(isVisible())) {
         startPos.rx() += PARAM_TO_OUT_OF_BOARD;
@@ -163,4 +168,11 @@ void Barrier::deactivate() {
         endPos.rx() -= PARAM_TO_OUT_OF_BOARD;
         label->setVisible(false);
     }
+}
+
+bool Barrier::isNull() {
+    if (startPos == endPos && endPos == QPoint(1, 1)) {
+        return true;
+    }
+    return false;
 }

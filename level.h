@@ -25,7 +25,7 @@ class Level
 public:
     Level() = default;
     Level(Character* _character, std::vector <Barrier*> _barriers, MainWindow* _window);
-    Level(std::string path, MainWindow* _window, std::vector<QLabel*> background);
+    Level(std::string path, MainWindow* _window);
     ~Level();
 
     void fall();
@@ -95,7 +95,7 @@ public:
 private:
     Character* character;
     Barrier* changingObject;
-    std::vector<QLabel*> background;
+    QVector<QLabel*> decorations;
     std::vector <Barrier*> barriers;
     std::vector <Barrier*> text;
     MainWindow* window;

@@ -1,0 +1,14 @@
+Text:
+50 20 700 200 "Найди ключ"
+Barriers:
+381 780 510 812 "background-image: url(:/new/prefix1/pictures/floor.png);"
+631 679 791 712 "background-image: url(:/new/prefix1/pictures/floor.png);"
+991 610 1087 642 "background-image: url(:/new/prefix1/pictures/floor.png);"
+1315 577 1410 610 "background-image: url(:/new/prefix1/pictures/floor.png);"
+Finish:
+1671 512 1785 584 "border-image: url(:/new/prefix1/pictures/finishh.png);"
+/
+/
+/
+KeyObjects:
+1014 657 1033 675 4

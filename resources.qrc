@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/new/prefix1">
         <file>pictures/character.png</file>
-        <file>pictures/floor.png</file>
         <file>pictures/floor.jpg</file>
         <file>pictures/background.jpg</file>
         <file>pictures/character(mirrored).png</file>
@@ -31,5 +30,28 @@
         <file>pictures/8e9fd85dbb2be93930b1b33ba625e082.gif</file>
         <file>pictures/Pink_Monster_Run.gif</file>
         <file>pictures/m_Pink_Monster_Run.gif</file>
+        <file>pictures/background.png</file>
+        <file>pictures/key.png</file>
+        <file>pictures/cloud_platform.png</file>
+        <file>pictures/jumper.png</file>
+        <file>pictures/grass.png</file>
+        <file>pictures/2spike (1).png</file>
+        <file>pictures/floor.png</file>
+        <file>pictures/thorns.png</file>
+        <file>pictures/green.png</file>
+        <file>pictures/8bit-water-texture-sq.png</file>
+        <file>pictures/Brown.png</file>
+        <file>pictures/Gray.png</file>
+        <file>pictures/finish.png</file>
+        <file>pictures/water.png</file>
+        <file>pictures/Home.png</file>
+        <file>pictures/Information.png</file>
+        <file>pictures/Play.png</file>
+        <file>pictures/arrow.png</file>
+        <file>pictures/finishh.png</file>
+        <file>pictures/rock_head.png</file>
+        <file>pictures/spikes.png</file>
+        <file>pictures/Torch_Gif.gif</file>
+        <file>pictures/wall.png</file>
     </qresource>
 </RCC>

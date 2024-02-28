@@ -1,4 +1,4 @@
- #ifndef HEADER_H
+#ifndef HEADER_H
 #define HEADER_H
 
 #include <QApplication>
@@ -22,14 +22,17 @@
 #define FALL_TIMER 3
 #define MAX_LABELS 100
 #define FINAL_LEVEL 7
-#define FIRST_LEVEL 6
+#define FIRST_LEVEL 1
 #define OTHER_OBJECTS_COUNT 3
-#define BARRIER_LABEL "background-color: rgb(0, 170, 0);"
-#define FINISH_LABEL "background-color: rgb(170, 0, 0);"
-#define MOVING_OBJECT_LABEL "background-color: rgb(0, 0, 170);"
-#define KILLING_OBJECT_LABEL "background-color: rgb(0, 170, 170);"
-#define JUMPING_OBJECT_LABEL "background-color: rgb(170, 170, 0);"
-#define KEY_OBJECT_LABEL "background-color: rgb(170, 100, 170);"
+//#define BARRIER_LABEL "border-image: url(:/new/prefix1/pictures/grass.png);"
+#define BARRIER_LABEL "background-image: url(:/new/prefix1/pictures/floor.png);"
+#define FINISH_LABEL "border-image: url(:/new/prefix1/pictures/finish.png);"
+//#define MOVING_OBJECT_LABEL "background-color: rgba(0, 0, 170, 90);"
+#define MOVING_OBJECT_LABEL "background-color: 'transparent';"
+#define KILLING_OBJECT_LABEL "background-image: url(:/new/prefix1/pictures/water.png);"
+//#define KILLING_OBJECT_LABEL "background-color: rgb(200, 200, 100);"
+#define JUMPING_OBJECT_LABEL "border-image: url(:/new/prefix1/pictures/jumper.png);"
+#define KEY_OBJECT_LABEL "border-image: url(:/new/prefix1/pictures/key.png);"
 
 #define CHAR_SIZE_X 90
 #define CHAR_SIZE_Y 110
